@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<T3locallang>
+    <meta type="array">
+        <description>Labels for mod1 backend module</description>
+        <type>module</type>
+        <csh_table></csh_table>
+        <labelContext type="array">
+        </labelContext>
+    </meta>
+    <data type="array">
+        <languageKey index="default" type="array">
+			<label index="updater_message2">tt_news 3.0.0 comes with a new updater-script which can fix some of the most common problems when you're updating an existing tt_news 2.x installation.</label>
+			<label index="updater_message">More to come here</label>
+			<label index="updater_header">Important!</label>
+        </languageKey>
+    </data>
+</T3locallang>

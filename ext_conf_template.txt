@@ -1,0 +1,3 @@
+
+	# cat=basic/dev/1000; type=user[EXT:uuid/Classes/Utility/ExtensionManager.php:Tx_Uuid_Utility_ExtensionManager->displayMessage]; label=LLL:EXT:uid/Resources/Private/Language/locallang.xml:itest
+updateMessage=0
