@@ -27,7 +27,7 @@
  ***************************************************************/
 
 
-class Tx_Identity_Registry implements t3lib_Singleton {
+class Tx_Identity_Map implements t3lib_Singleton {
 
 	/**
 	 * @var t3lib_DB
@@ -35,14 +35,29 @@ class Tx_Identity_Registry implements t3lib_Singleton {
 	protected $db;
 
 	/**
-	 * @var	array
+	 * @var Tx_Identity_ProviderInterface
 	 */
-	protected $uuidMap = array();
+	protected $defaultIdentityProvider;
+
+	/**
+	 * @var array
+	 */
+	protected $identityProviders = array();
+
+	/**
+	 * @var array
+	 */
+	protected $tableSpecificIdentityProviders = array();
 
 	/**
 	 * @var	array
 	 */
-	protected $tablenameUidMap = array();
+	protected $identityLocationMap = array();
+
+	/**
+	 * @var	array
+	 */
+	protected $recordLocationMap = array();
 
 	/**
 	 * @var array
@@ -59,34 +74,105 @@ class Tx_Identity_Registry implements t3lib_Singleton {
 	 */
 	public function __construct() {
 		$this->db = $GLOBALS['TYPO3_DB'];
+		$this->initializeIdentityProviders();
+		$this->initializeDefaultIdentityProvider();
+		$this->initializeTableSpecificIdentityProviders();
+	}
+
+	/**
+	 * Initialize all defined identity providers
+	 */
+	protected function initializeIdentityProviders() {
+		$identityConfigurationCheck = t3lib_div::makeInstance('Tx_Identity_Configuration_Check');
+		$identityConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'];
+		$identityProviders = $identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST];
+
+		foreach ($identityProviders as $identityField=>$identityProviderConfiguration) {
+			$identityConfigurationCheck->checkIdentityProviderConfiguration($identityField);
+			$identityProvider = t3lib_div::makeInstance($identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS]);
+			if (!$identityProvider) {
+				throw InvalidArgumentException('The provider class "' . $identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS] . '" could not be loaded.', 1300109265);
+			}
+			if (!$identityProvider instanceof Tx_Identity_ProviderInterface) {
+				throw InvalidDataType('The provider class "' . $identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS] . '" does not implement the "Tx_Identity_ProviderInterface".' , 1300110062);
+			}
+			$this->identityProviders[$identityField] = $identityProvider;
+		}
+	}
+
+	/**
+	 * Initialize the default provider
+	 */
+	protected function initializeDefaultIdentityProvider() {
+		$identityConfigurationCheck = t3lib_div::makeInstance('Tx_Identity_Configuration_Check');
+
+		if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER])) {
+			throw InvalidArgumentException(
+				'There is no default identity provider defined in ' .
+				'$GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'identity\'][Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER]',
+				1300104461
+			);
+		}
+
+		$defaultProvider = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER];
+		$identityConfigurationCheck->checkDefaultIdentityProviderConfiguration($defaultProvider);
+		$this->defaultIdentityProvider = $this->identityProviders[$defaultProvider];
+
+	}
+
+	/**
+	 * Initialize the table specific providers
+	 */
+	protected function initializeTableSpecificIdentityProviders() {
+		$identityConfigurationCheck = t3lib_div::makeInstance('Tx_Identity_Configuration_Check');
+
+		if (isset($GLOBALS['TCA'])) {
+			foreach ($GLOBALS['TCA'] as $table=>$configuration) {
+				t3lib_div::loadTCA($table);
+				$configuration = $GLOBALS['TCA'][$table];
+
+				if (isset($GLOBALS['TCA'][$table]['ctrl']['EXT']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::KEY])) {
+
+					$identityField = $GLOBALS['TCA'][$table]['ctrl']['EXT']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::KEY];
+					$identityConfigurationCheck->checkTableSpecificIdentityProviderConfiguration($table, $identityField);
+
+					$tableSpecificIdentityProviders['table'] = array(
+						'field'		=>	$identityField,
+						'provider'	=>	$this->identityProviders[$identityField],
+					);
+				}
+			}
+		} else {
+			throw Exception('TCA is not available at the moment.', 1300109740);
+		}
 	}
 
 	/**
 	 * Returns a tablename for a given uuid.
 	 *
-	 * @param	string	UUID
+	 * @param	string	identifier
 	 * @return	mixed	The tablename of the entry or null.
 	 * @throws	InvalidArgumentException	Throws an exception if the given uuid is not valid
 	 */
 	public function getTablename($uuid) {
-		if (!isset($this->uuidMap[$uuid]['tablename'])) {
+		if (!isset($this->identityLocationMap[$uuid]['tablename'])) {
 			$this->loadEntryByUUID($uuid);
 		}
-		return $this->uuidMap[$uuid]['tablename'];
+		return $this->identityLocationMap[$uuid]['tablename'];
 	}
 
 	/**
 	 * Returns a uid for a given uuid.
 	 *
-	 * @param	string	UUID
+	 * @param	string	identifier
 	 * @return	int	The uid of the entry or null.
 	 * @throws	InvalidArgumentException	Throws an exception if the given uuid is not valid
 	 */
 	public function getUid($uuid) {
-		if (!isset($this->uuidMap[$uuid]['uid'])) {
+		if (!isset($this->identityLocationMap[$uuid]['uid'])) {
 			$this->loadEntryByUUID($uuid);
 		}
-		return $this->uuidMap[$uuid]['uid'];
+		return $this->identityLocationMap[$uuid]['uid'];
 	}
 
 	/**
@@ -97,16 +183,16 @@ class Tx_Identity_Registry implements t3lib_Singleton {
 	 */
 	public function getUuid($tablename, $uid) {
 		$hash = $tablename . '_' . $uid;
-		if (!isset($this->tablenameUidMap[$hash])) {
+		if (!isset($this->recordLocationMap[$hash])) {
 			$this->loadEntryByTablenameAndUid($tablename, $uid);
 		}
-		return $this->tablenameUidMap[$hash];
+		return $this->recordLocationMap[$hash];
 	}
 
 	/**
 	 * Loads an entry for a given uuid
 	 *
-	 * @param	string	UUID
+	 * @param	string	identifier
 	 * @return	void
 	 * @throws	InvalidArgumentException	Throws an exception if the given namespace is not valid
 	 */
@@ -125,7 +211,7 @@ class Tx_Identity_Registry implements t3lib_Singleton {
 	/**
 	 * Loads an entry for a given uuid
 	 *
-	 * @param	string	UUID
+	 * @param	string	identifier
 	 * @return	void
 	 * @throws	InvalidArgumentException	Throws an exception if the given tablename or uid is not valid
 	 */
@@ -184,12 +270,12 @@ class Tx_Identity_Registry implements t3lib_Singleton {
 	 */
 	protected function addToCache($uuid, $tablename, $uid) {
 		if ($uuid && $tablename && $uid) {
-			$this->uuidMap[$uuid] = array(
+			$this->identityLocationMap[$uuid] = array(
 					'tablename'	=> $tablename,
 					'uid'		=> $uid,
 				);
 			$hash = $tablename . '_' . $uid;
-			$this->tablenameUidMap[$hash] = $uuid;
+			$this->recordLocationMap[$hash] = $uuid;
 		}
 	}
 
@@ -203,16 +289,16 @@ class Tx_Identity_Registry implements t3lib_Singleton {
 	 */
 	protected function removeFromCache($uuid, $tablename, $uid) {
 		if ($uuid && $tablename && $uid) {
-			unset($this->uuidMap[$uuid]);
+			unset($this->identityLocationMap[$uuid]);
 			$hash = $tablename . '_' . $uid;
-			unset($this->tablenameUidMap[$hash]);
+			unset($this->recordLocationMap[$hash]);
 		}
 	}
 
 	/**
 	 * Unregisters an uuid triple
 	 *
-	 * @param	string	Namespace. extension key for extensions or 'core' for core registry entries
+	 * @param	string	identifier
 	 * @param	string	The key of the entry to unset.
 	 * @return	void
 	 * @throws	InvalidArgumentException	Throws an exception if the given namespace is not valid

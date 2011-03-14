@@ -62,7 +62,7 @@ class ux_t3lib_DB extends t3lib_DB {
 		if (!$this->sql_error() && count($this->lastCreatedUUIDs)) {
 			$row = $this->exec_SELECTgetSingleRow('uid', $table, 'uuid = ' . $this->fullQuoteStr(current($this->lastCreatedUUIDs), $table));
 			if ($row) {
-				$uuidRegistry = t3lib_div::makeInstance('Tx_Identity_Registry');
+				$uuidRegistry = t3lib_div::makeInstance('Tx_Identity_Map');
 				$uuidRegistry->registerUUID(current($this->lastCreatedUUIDs), $table, $row['uid']);
 				$this->lastCreatedUUIDs = array();
 			}
@@ -85,7 +85,7 @@ class ux_t3lib_DB extends t3lib_DB {
 		if (!$this->sql_error() && count($this->lastCreatedUUIDs)) {
 			$rows = $this->exec_SELECTgetSingleRow('uid,uuid', $table, 'uuid IN ' . implode(',', $this->fullQuoteArray($this->lastCreatedUUIDs, $table)));
 			if (count($rows)) {
-				$uuidRegistry = t3lib_div::makeInstance('Tx_Identity_Registry');
+				$uuidRegistry = t3lib_div::makeInstance('Tx_Identity_Map');
 				foreach ($rows as $row) {
 					$uuidRegistry->registerUUID($row['uuid'], $table, $row['uid']);
 				}
@@ -107,7 +107,7 @@ class ux_t3lib_DB extends t3lib_DB {
 		$this->deletedUUIDs = array();
 		$res = parent::exec_DELETEquery($table, $where);
 		if (!$this->sql_error() && count($this->deletedUUIDs)) {
-			$uuidRegistry = t3lib_div::makeInstance('Tx_Identity_Registry');
+			$uuidRegistry = t3lib_div::makeInstance('Tx_Identity_Map');
 			foreach ($this->deletedUUIDs as $tuple) {
 				$uuidRegistry->unregisterUUID($tuple['uuid'], $table, $tuple['uid']);
 			}

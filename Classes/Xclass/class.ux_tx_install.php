@@ -12,7 +12,7 @@ class ux_tx_install extends tx_install {
 		$this->includeTCA();
 		$tableDefintions = parent::getFieldDefinitions_fileContent($fileContent);
 		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
-		$tableDefintions = $fieldDefinitionsUtility->insertUuidColumn($tableDefintions);
+		$tableDefintions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefintions);
 		return $tableDefintions;
 	}
 }
