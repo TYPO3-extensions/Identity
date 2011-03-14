@@ -1,7 +1,7 @@
 <?php
 
 class ux_t3lib_install extends t3lib_install {
-	
+
 	/**
 	 * Reads the field definitions for the input SQL-file string
 	 *
@@ -10,7 +10,7 @@ class ux_t3lib_install extends t3lib_install {
 	 */
 	function getFieldDefinitions_fileContent($fileContent) {
 		$tableDefintions = parent::getFieldDefinitions_fileContent($fileContent);
-		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Uuid_Utility_FieldDefinitions');
+		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
 		$tableDefintions = $fieldDefinitionsUtility->insertUuidColumn($tableDefintions);
 		return $tableDefintions;
 	}

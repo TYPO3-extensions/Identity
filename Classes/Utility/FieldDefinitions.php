@@ -1,10 +1,10 @@
 <?php
 
-class Tx_Uuid_Utility_FieldDefinitions {
-	
+class Tx_Identity_Utility_FieldDefinitions {
+
 	/**
 	 * Check if a table definition contains an uid and a pid, and insert a uuid column
-	 * 
+	 *
 	 * @param array $tableDefinitions
 	 * @return array
 	 */
@@ -15,6 +15,6 @@ class Tx_Uuid_Utility_FieldDefinitions {
 			}
 		}
 		return $tableDefinitions;
-	}	
+	}
 }
 ?>

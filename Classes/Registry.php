@@ -27,8 +27,8 @@
  ***************************************************************/
 
 
-class Tx_Uuid_Registry implements t3lib_Singleton {
-	
+class Tx_Identity_Registry implements t3lib_Singleton {
+
 	/**
 	 * @var t3lib_DB
 	 */
@@ -43,17 +43,17 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 	 * @var	array
 	 */
 	protected $tablenameUidMap = array();
-	
+
 	/**
 	 * @var array
 	 */
 	protected $insertQueue = array();
-	
+
 	/**
 	 * @var array
 	 */
 	protected $deleteQueue = array();
-	
+
 	/**
 	 * Constructor method for the uuid registry
 	 */
@@ -74,7 +74,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 		}
 		return $this->uuidMap[$uuid]['tablename'];
 	}
-	
+
 	/**
 	 * Returns a uid for a given uuid.
 	 *
@@ -88,7 +88,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 		}
 		return $this->uuidMap[$uuid]['uid'];
 	}
-	
+
 	/**
 	 * Returns a uuid for a given tablename and uid
 	 * @param string $tablename
@@ -102,7 +102,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 		}
 		return $this->tablenameUidMap[$hash];
 	}
-	
+
 	/**
 	 * Loads an entry for a given uuid
 	 *
@@ -111,7 +111,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 	 * @throws	InvalidArgumentException	Throws an exception if the given namespace is not valid
 	 */
 	protected function loadEntryByUUID($uuid) {
-		Tx_Uuid_Utility_Algorithms::validateUUID($uuid);
+		Tx_Identity_Utility_Algorithms::validateUUID($uuid);
 		$row = $this->db->exec_SELECTgetSingleRow(
 			'foreign_tablename, foreign_uid',
 			'sys_uuid',
@@ -121,7 +121,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 			$this->addToCache($uuid, $row['foreign_tablename'], $row['foreign_uid']);
 		}
 	}
-	
+
 	/**
 	 * Loads an entry for a given uuid
 	 *
@@ -160,7 +160,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 	 * @throws	InvalidArgumentException	Throws an exception if the given namespace is not valid
 	 */
 	public function registerUUID($uuid, $tablename, $uid) {
-		Tx_Uuid_Utility_Algorithms::validateUUID($uuid);
+		Tx_Identity_Utility_Algorithms::validateUUID($uuid);
 		t3lib_div::loadTCA($tablename);
 		if (isset($GLOBALS['TCA'][$tablename]) && t3lib_div::testInt($uid)) {
 			$this->insertQueue[$uuid] = array(
@@ -173,10 +173,10 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 			}
 		}
 	}
-	
+
 	/**
 	 * Adds a uuid, tablename, uid triple to the local object cache
-	 * 
+	 *
 	 * @param string $uuid
 	 * @param string $tablename
 	 * @param int $uid
@@ -188,14 +188,14 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 					'tablename'	=> $tablename,
 					'uid'		=> $uid,
 				);
-			$hash = $tablename . '_' . $uid; 
+			$hash = $tablename . '_' . $uid;
 			$this->tablenameUidMap[$hash] = $uuid;
 		}
 	}
-	
+
 	/**
 	 * Removes a uuid, tablename, uid triple from the local object cache
-	 * 
+	 *
 	 * @param string $uuid
 	 * @param string $tablename
 	 * @param int $uid
@@ -204,7 +204,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 	protected function removeFromCache($uuid, $tablename, $uid) {
 		if ($uuid && $tablename && $uid) {
 			unset($this->uuidMap[$uuid]);
-			$hash = $tablename . '_' . $uid; 
+			$hash = $tablename . '_' . $uid;
 			unset($this->tablenameUidMap[$hash]);
 		}
 	}
@@ -218,7 +218,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 	 * @throws	InvalidArgumentException	Throws an exception if the given namespace is not valid
 	 */
 	public function unregisterUUID($uuid, $tablename, $uid) {
-		Tx_Uuid_Utility_Algorithms::validateUUID($uuid);
+		Tx_Identity_Utility_Algorithms::validateUUID($uuid);
 		t3lib_div::loadTCA($tablename);
 		if (isset($GLOBALS['TCA'][$tablename]) && t3lib_div::testInt($uid)) {
 			if (isset($this->insertQueue[$uuid])) {
@@ -234,7 +234,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 			}
 		}
 	}
-	
+
 	/**
 	 * Rebuilds the registry
 	 */
@@ -243,14 +243,14 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 		$this->removeNeedlessUUIDs();
 		$this->registerUnregisteredUUIDs();
 	}
-	
+
 	/**
 	 * Walks through all tables and registers uuids of records with uuid not stored in the registry
 	 */
 	protected function registerUnregisteredUUIDs() {
 		foreach ($GLOBALS['TCA'] as $tablename=>$configuration) {
 			$rows = $this->db->exec_SELECTgetRows(
-				$tablename . '.uuid, ' . $tablename . '.uid', 
+				$tablename . '.uuid, ' . $tablename . '.uid',
 				'sys_uuid RIGHT JOIN ' . $tablename . ' ON (sys_uuid.uuid = ' . $tablename . '.uuid)',
 				'sys_uuid.uid IS NULL'
 			);
@@ -259,7 +259,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 			}
 		}
 	}
-	
+
 	/**
 	 * Walks through all tables and unregisters all uuid mappings that have no target
 	 */
@@ -275,7 +275,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 			}
 		}
 	}
-	
+
 	/**
 	 * Walks through all tables and inserts an uuid to a record that has any
 	 */
@@ -290,9 +290,9 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 			if (count($rows)) {
 				foreach ($rows as &$row) {
 					if ($isStatic) {
-						$uuid = Tx_Uuid_Utility_Algorithms::generateUUIDforStaticTable($tablename, $row['uid']);
+						$uuid = Tx_Identity_Utility_Algorithms::generateUUIDforStaticTable($tablename, $row['uid']);
 					} else {
-						$uuid = Tx_Uuid_Utility_Algorithms::generateUUID();
+						$uuid = Tx_Identity_Utility_Algorithms::generateUUID();
 					}
 					$this->db->exec_UPDATEquery($tablename, 'uid = ' .$row['uid'], array('uuid' => $uuid));
 					$this->registerUUID($uuid, $tablename, $row['uid']);
@@ -300,7 +300,7 @@ class Tx_Uuid_Registry implements t3lib_Singleton {
 			}
 		}
 	}
-	
+
 	/**
 	 * Persist the registry to the database
 	 */

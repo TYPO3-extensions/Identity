@@ -10,11 +10,11 @@
 ########################################################################
 
 $EM_CONF[$_EXTKEY] = array(
-	'title' => 'UUID',
+	'title' => 'Identity',
 	'description' => '',
 	'category' => 'plugin',
-	'author' => 'Thomas Maroschik',
-	'author_email' => 'tmaroschik@dfau.de',
+	'author' => 'Thomas Maroschik, Fabien Udriot',
+	'author_email' => 'tmaroschik@dfau.de, fabien.udriot@ecodev.ch',
 	'author_company' => '',
 	'shy' => '',
 	'dependencies' => '',

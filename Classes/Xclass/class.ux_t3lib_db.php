@@ -35,12 +35,12 @@
  * @author	Thomas Maroschik <tmaroschik@dfau.de>
  */
 class ux_t3lib_DB extends t3lib_DB {
-	
+
 	/**
 	 * @var array
 	 */
 	protected $lastCreatedUUIDs = array();
-	
+
 	/**
 	 * @var array
 	 */
@@ -62,7 +62,7 @@ class ux_t3lib_DB extends t3lib_DB {
 		if (!$this->sql_error() && count($this->lastCreatedUUIDs)) {
 			$row = $this->exec_SELECTgetSingleRow('uid', $table, 'uuid = ' . $this->fullQuoteStr(current($this->lastCreatedUUIDs), $table));
 			if ($row) {
-				$uuidRegistry = t3lib_div::makeInstance('Tx_Uuid_Registry');
+				$uuidRegistry = t3lib_div::makeInstance('Tx_Identity_Registry');
 				$uuidRegistry->registerUUID(current($this->lastCreatedUUIDs), $table, $row['uid']);
 				$this->lastCreatedUUIDs = array();
 			}
@@ -85,9 +85,9 @@ class ux_t3lib_DB extends t3lib_DB {
 		if (!$this->sql_error() && count($this->lastCreatedUUIDs)) {
 			$rows = $this->exec_SELECTgetSingleRow('uid,uuid', $table, 'uuid IN ' . implode(',', $this->fullQuoteArray($this->lastCreatedUUIDs, $table)));
 			if (count($rows)) {
-				$uuidRegistry = t3lib_div::makeInstance('Tx_Uuid_Registry');
+				$uuidRegistry = t3lib_div::makeInstance('Tx_Identity_Registry');
 				foreach ($rows as $row) {
-					$uuidRegistry->registerUUID($row['uuid'], $table, $row['uid']);	
+					$uuidRegistry->registerUUID($row['uuid'], $table, $row['uid']);
 				}
 				$this->lastCreatedUUIDs = array();
 			}
@@ -107,7 +107,7 @@ class ux_t3lib_DB extends t3lib_DB {
 		$this->deletedUUIDs = array();
 		$res = parent::exec_DELETEquery($table, $where);
 		if (!$this->sql_error() && count($this->deletedUUIDs)) {
-			$uuidRegistry = t3lib_div::makeInstance('Tx_Uuid_Registry');
+			$uuidRegistry = t3lib_div::makeInstance('Tx_Identity_Registry');
 			foreach ($this->deletedUUIDs as $tuple) {
 				$uuidRegistry->unregisterUUID($tuple['uuid'], $table, $tuple['uid']);
 			}
@@ -115,7 +115,7 @@ class ux_t3lib_DB extends t3lib_DB {
 		}
 		return $res;
 	}
-		
+
 	/**
 	 * Creates an INSERT SQL-statement for $table from the array with field/value pairs $fields_values.
 	 * Usage count/core: 4
@@ -128,7 +128,7 @@ class ux_t3lib_DB extends t3lib_DB {
 	function INSERTquery($table, $fields_values, $no_quote_fields = FALSE) {
 		t3lib_div::loadTCA($table);
 		if (isset($GLOBALS['TCA'][$table]) && !isset($fields_values['uuid'])) {
-			$uuid = Tx_Uuid_Utility_Algorithms::generateUUID();
+			$uuid = Tx_Identity_Utility_Algorithms::generateUUID();
 			$fields_values['uuid'] = $uuid;
 			$this->lastCreatedUUIDs[] = $uuid;
 		}
@@ -149,7 +149,7 @@ class ux_t3lib_DB extends t3lib_DB {
 		if (isset($GLOBALS['TCA'][$table]) && !in_array('uuid', $fields) && count($rows)) {
 			$fields[] = 'uuid';
 			foreach ($rows as &$row) {
-				$uuid = Tx_Uuid_Utility_Algorithms::generateUUID();;
+				$uuid = Tx_Identity_Utility_Algorithms::generateUUID();;
 				$row[] = $uuid;
 				$this->lastCreatedUUIDs[] = $uuid;
 			}
@@ -169,7 +169,7 @@ class ux_t3lib_DB extends t3lib_DB {
 		t3lib_div::loadTCA($table);
 		if (isset($GLOBALS['TCA'][$table])) {
 			$rows = $this->exec_SELECTgetRows('uid,uuid', $table, $where);
-			$this->deletedUUIDs = $rows;		
+			$this->deletedUUIDs = $rows;
 		}
 		return parent::DELETEquery($table, $where);
 	}

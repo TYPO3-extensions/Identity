@@ -1,31 +1,39 @@
 <?php
-/*                                                                        *
- * This script belongs to the FLOW3 framework.                            *
- *                                                                        *
- * It is free software; you can redistribute it and/or modify it under    *
- * the terms of the GNU Lesser General Public License as published by the *
- * Free Software Foundation, either version 3 of the License, or (at your *
- * option) any later version.                                             *
- *                                                                        *
- * This script is distributed in the hope that it will be useful, but     *
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHAN-    *
- * TABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser       *
- * General Public License for more details.                               *
- *                                                                        *
- * You should have received a copy of the GNU Lesser General Public       *
- * License along with the script.                                         *
- * If not, see http://www.gnu.org/licenses/lgpl.html                      *
- *                                                                        *
- * The TYPO3 project - inspiring people to share!                         *
- *                                                                        */
-
-/**
+/***************************************************************
+ *  Copyright notice
+ *
+ *  (c) 2011 Thomas Maroschik <tmaroschik@dfau.de>
+ *  All rights reserved
+ *
+ *  This class is a backport of the corresponding class of FLOW3.
+ *  All credits go to the v5 team.
+ *
+ *  This script is part of the TYPO3 project. The TYPO3 project is
+ *  free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  The GNU General Public License can be found at
+ *  http://www.gnu.org/copyleft/gpl.html.
+ *  A copy is found in the textfile GPL.txt and important notices to the license
+ *  from the author is found in LICENSE.txt distributed with these scripts.
+ *
+ *
+ *  This script is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  This copyright notice MUST APPEAR in all copies of the script!
+ ***************************************************************/
+ /**
  * A utility class for various algorithms.
  *
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
  */
-class Tx_Uuid_Utility_Algorithms {
-	
+class Tx_Identity_Utility_Algorithms {
+
 	const TYPO3ORG_UUID = 'c4e6860b-3993-54a9-9c8b-f9bf558b0a77';
 
 	/**
@@ -42,22 +50,22 @@ class Tx_Uuid_Utility_Algorithms {
 			mt_rand( 0, 0x3fff ) | 0x8000,
 			mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ) );
 	}
-	
+
 	/**
 	 * Generates a universally unique identifier (UUID) according to RFC 4122 for static tables.
 	 * @param string $tablename
 	 * @param int $uid
 	 * @return string The universally unique id
 	 * @author Thomas Maroschik <tmaroschik@dfau.de>
-	 * @throws 
+	 * @throws
 	 */
 	static public function generateUUIDforStaticTable($tablename, $uid) {
 		if (!isset($GLOBALS['TCA'][$tablename]['ctrl']['is_static']) && !$GLOBALS['TCA'][$tablename]['ctrl']['is_static']) {
-			throw new InvalidArgumentException('The given tablename "' . $tablename . '" is not defined as is_static in TCA.', 1299074512); 
+			throw new InvalidArgumentException('The given tablename "' . $tablename . '" is not defined as is_static in TCA.', 1299074512);
 		}
 		return self::generateUUIDv5(self::TYPO3ORG_UUID, $tablename . '_' . $uid);
 	}
-	
+
 	/**
 	 * Generate an universally unique identifier (UUID) according to RFC 4122 v5.
 	 * @param string $namespace
@@ -106,7 +114,7 @@ class Tx_Uuid_Utility_Algorithms {
                 substr($hash, 20, 12)
         );
     }
-    
+
 	/**
 	 * Checks the given UUID. If it does not have a valid format an
 	 * exception is thrown.
@@ -115,25 +123,25 @@ class Tx_Uuid_Utility_Algorithms {
 	 * @return	bool
 	 * @throws	InvalidArgumentException	Throws an exception if the given uuid is not valid
 	 */
-	static public function validateUUID($uuid) {  
-        if (!strlen($uuid)) { 
-            throw new InvalidArgumentException('Empty UUID given.', 1299013185); 
-            return false; 
-        } 
-        if (function_exists('uuid_is_valid') && !uuid_is_valid($uuid)) { 
-            throw new InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013329); 
-            return false; 
-        } 
-        if (strlen($uuid) !== 36) { 
-            throw new InvalidArgumentException('Lenghth of UUID has to be 36 characters.', 1299013335); 
-            return false; 
-        } 
-        $pattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i'; 
-        if (!preg_match($pattern, $uuid)) { 
-            throw new InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013339); 
-            return false; 
-        } 
-        return true; 
+	static public function validateUUID($uuid) {
+        if (!strlen($uuid)) {
+            throw new InvalidArgumentException('Empty UUID given.', 1299013185);
+            return false;
+        }
+        if (function_exists('uuid_is_valid') && !uuid_is_valid($uuid)) {
+            throw new InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013329);
+            return false;
+        }
+        if (strlen($uuid) !== 36) {
+            throw new InvalidArgumentException('Lenghth of UUID has to be 36 characters.', 1299013335);
+            return false;
+        }
+        $pattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
+        if (!preg_match($pattern, $uuid)) {
+            throw new InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013339);
+            return false;
+        }
+        return true;
 	}
 
 	/**
