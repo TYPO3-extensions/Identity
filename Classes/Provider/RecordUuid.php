@@ -26,14 +26,8 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-interface Tx_Identity_Configuration_IdentityProviderInterface {
+class Tx_Identity_Provider_RecordUuid extends Tx_Identity_Provider_AbstractUuid {
 
-	const KEY							= 'identityProvider';
-	const PROVIDERS_LIST				= 'identityProviders';
-	const DEFAULT_PROVIDER				= 'defaultProvider';
-	const IDENTITY_FIELD				= 'identityField';
-	const IDENTITY_FIELD_CREATE_CLAUSE	= 'identityFieldCreateClause';
-	const PROVIDER_CLASS				= 'providerClass';
 }
 
 ?>

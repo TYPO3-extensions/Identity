@@ -26,14 +26,30 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-interface Tx_Identity_Configuration_IdentityProviderInterface {
+class Tx_Identity_Provider_StaticRecordUuid extends Tx_Identity_Provider_AbstractUuid {
 
-	const KEY							= 'identityProvider';
-	const PROVIDERS_LIST				= 'identityProviders';
-	const DEFAULT_PROVIDER				= 'defaultProvider';
-	const IDENTITY_FIELD				= 'identityField';
-	const IDENTITY_FIELD_CREATE_CLAUSE	= 'identityFieldCreateClause';
-	const PROVIDER_CLASS				= 'providerClass';
+	/**
+	 * Walks through all tables and inserts an uuid to a record that has any
+	 */
+	protected function insertMissingUUIDs() {
+		$identityField =  $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+		foreach ($GLOBALS['TCA'] as $tablename=>$configuration) {
+			$rows = $this->db->exec_SELECTgetRows('uid', $tablename, $identityField . " LIKE ''");
+			if (count($rows)) {
+				foreach ($rows as &$row) {
+					$uuid = Tx_Identity_Utility_Algorithms::generateUUIDforStaticTable($tablename, $row['uid']);
+					$this->db->exec_UPDATEquery($tablename, 'uid = ' .$row['uid'], array($identityField => $uuid));
+					$this->insertQueue[$uuid] = array(
+						 $identityField => $uuid,
+						 'foreign_tablename' => $tablename,
+						 'foreign_uid' => $row['uid']
+					);
+					$this->addToCache($uuid, $tablename, $uid);
+				}
+			}
+		}
+	}
+
 }
 
 ?>

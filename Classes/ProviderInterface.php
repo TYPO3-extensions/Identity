@@ -29,6 +29,20 @@
 interface Tx_Identity_ProviderInterface {
 
 	/**
+	 * Sets the provider key on the provider
+	 *
+	 * @param string $providerKey
+	 */
+	public function __construct($providerKey);
+
+	/**
+	 * Validates the identifier
+	 *
+	 * @param mixed $identifier
+	 */
+	public function validateIdentifier($identifier);
+
+	/**
 	 * Returns a unique identifier for a resource location
 	 *
 	 * @param string $tablename
@@ -36,6 +50,14 @@ interface Tx_Identity_ProviderInterface {
 	 * @return mixed the unique identifier
 	 */
 	public function getIdentifierForResourceLocation($tablename, $uid);
+
+	/**
+	 * Requests a new identifier for a resource location
+	 *
+	 * @param string $tablename
+	 * @return mixed
+	 */
+	public function getIdentifierForNewResourceLocation($tablename);
 
 	/**
 	 * Returns a resource location for an identifier

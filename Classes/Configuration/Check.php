@@ -41,7 +41,7 @@ class Tx_Identity_Configuration_Check implements t3lib_Singleton {
 		$this->checkIdentityProviderConfiguration($identityProvider);
 
 		if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][$identityProvider])) {
-			throw InvalidArgumentException(
+			throw new InvalidArgumentException(
 				'The identity provider "' . $identityProvider .
 				'" defined in $GLOBALS[\'TCA\'][\'' . $table . '\'][\'ctrl\'][\'EXT\'][\'identity\'][Tx_Identity_Configuration_IdentityProviderInterface::KEY]' .
 				' is not in the list of available providers ' .
@@ -50,7 +50,7 @@ class Tx_Identity_Configuration_Check implements t3lib_Singleton {
 			);
 		}
 		if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][$identityProvider][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE])) {
-			throw InvalidArgumentException(
+			throw new InvalidArgumentException(
 				'The identity provider "' . $identityProvider .
 				'" defined in $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'identity\'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][\'' . $identityProvider . '\']' .
 				' has no identity field create clause defined at ' .
@@ -72,7 +72,7 @@ class Tx_Identity_Configuration_Check implements t3lib_Singleton {
 
 		if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][$defaultProvider])) {
 
-			throw InvalidArgumentException(
+			throw new InvalidArgumentException(
 				'The default identity provider "' . $defaultProvider .
 				'" defined in $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'identity\'][Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER]' .
 				' is not in the list of available providers ' .
@@ -94,7 +94,7 @@ class Tx_Identity_Configuration_Check implements t3lib_Singleton {
 
 		if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][$identityProvider])) {
 
-			throw InvalidArgumentException(
+			throw new InvalidArgumentException(
 				'The identity provider "' . $identityProvider .
 				'" is not defined in $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'identity\'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][\'' . $table . '\']',
 				1300109077
@@ -102,9 +102,22 @@ class Tx_Identity_Configuration_Check implements t3lib_Singleton {
 
 		}
 
+		if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][$identityProvider][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD])) {
+
+			throw new InvalidArgumentException(
+				'The identity provider "' . $identityProvider .
+				'" defined in $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'identity\'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][\'' . $table . '\']' .
+				' has no identity field defined at ' .
+				'$GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'identity\'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][\'' . $identityProvider . '\'][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD]'
+				,
+				1300110713
+			);
+
+		}
+
 		if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][$identityProvider][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE])) {
 
-			throw InvalidArgumentException(
+			throw new InvalidArgumentException(
 				'The identity provider "' . $identityProvider .
 				'" defined in $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'identity\'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][\'' . $table . '\']' .
 				' has no identity field create clause defined at ' .
@@ -117,7 +130,7 @@ class Tx_Identity_Configuration_Check implements t3lib_Singleton {
 
 		if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][$identityProvider][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS])) {
 
-			throw InvalidArgumentException(
+			throw new InvalidArgumentException(
 				'The identity provider "' . $identityProvider .
 				'" defined in $GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'identity\'][Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST][\'' . $table . '\']' .
 				' has no provider class defined at ' .

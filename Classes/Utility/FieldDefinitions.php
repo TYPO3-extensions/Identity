@@ -20,15 +20,17 @@ class Tx_Identity_Utility_FieldDefinitions {
 
 				if (isset($GLOBALS['TCA'][$table]['ctrl']['EXT']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::KEY])) {
 
-					$identityProvider = $GLOBALS['TCA'][$table]['ctrl']['EXT']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::KEY];
-					$identityConfigurationCheck->checkTableSpecificIdentityProviderConfiguration($table, $identityProvider);
-					$definition['fields'][$identityProvider] = $identityProviders[$identityProvider][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE];
+					$identityProviderKey = $GLOBALS['TCA'][$table]['ctrl']['EXT']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::KEY];
+					$identityProviderField = $identityProviders[$identityProviderKey][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+					$identityConfigurationCheck->checkTableSpecificIdentityProviderConfiguration($table, $identityProviderKey);
+					$definition['fields'][$identityProviderField] = $identityProviders[$identityProviderKey][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE];
 
 				} elseif (isset($identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER])) {
 
-					$defaultProvider = $identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER];
-					$identityConfigurationCheck->checkDefaultIdentityProviderConfiguration();
-					$definition['fields'][$defaultProvider] = $identityProviders[$defaultProvider][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE];
+					$defaultProviderKey = $identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER];
+					$defaultProviderField = $identityProviders[$defaultProviderKey][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+					$identityConfigurationCheck->checkDefaultIdentityProviderConfiguration($defaultProviderKey);
+					$definition['fields'][$defaultProviderField] = $identityProviders[$defaultProviderKey][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE];
 
 				} else {
 
@@ -39,7 +41,17 @@ class Tx_Identity_Utility_FieldDefinitions {
 					);
 
 				}
+			} elseif ($table == 'sys_identity') {
+
+				foreach ($identityProviders as $identityProviderKey=>$identityProviderConfiguration) {
+					$identityConfigurationCheck->checkIdentityProviderConfiguration($identityProviderKey);
+					$identityField = $identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+					$identityFieldCreateClause = $identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE];
+					$definition['fields'][$identityField] = $identityFieldCreateClause;
+				}
+
 			}
+
 		}
 
 		return $tableDefinitions;

@@ -116,35 +116,6 @@ class Tx_Identity_Utility_Algorithms {
     }
 
 	/**
-	 * Checks the given UUID. If it does not have a valid format an
-	 * exception is thrown.
-	 *
-	 * @param	string	UUID.
-	 * @return	bool
-	 * @throws	InvalidArgumentException	Throws an exception if the given uuid is not valid
-	 */
-	static public function validateUUID($uuid) {
-        if (!strlen($uuid)) {
-            throw new InvalidArgumentException('Empty UUID given.', 1299013185);
-            return false;
-        }
-        if (function_exists('uuid_is_valid') && !uuid_is_valid($uuid)) {
-            throw new InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013329);
-            return false;
-        }
-        if (strlen($uuid) !== 36) {
-            throw new InvalidArgumentException('Lenghth of UUID has to be 36 characters.', 1299013335);
-            return false;
-        }
-        $pattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
-        if (!preg_match($pattern, $uuid)) {
-            throw new InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013339);
-            return false;
-        }
-        return true;
-	}
-
-	/**
 	 * Returns a string of random bytes.
 	 *
 	 * @param integer $count Number of bytes to generate
