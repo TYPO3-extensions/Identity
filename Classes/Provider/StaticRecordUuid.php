@@ -29,6 +29,14 @@
 class Tx_Identity_Provider_StaticRecordUuid extends Tx_Identity_Provider_AbstractUuid {
 
 	/**
+	 * Rebuilds the registry
+	 */
+	public function rebuild() {
+		$this->insertMissingUUIDs();
+	}
+
+
+	/**
 	 * Walks through all tables and inserts an uuid to a record that has any
 	 */
 	protected function insertMissingUUIDs() {
