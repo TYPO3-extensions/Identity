@@ -9,9 +9,43 @@
     </meta>
     <data type="array">
         <languageKey index="default" type="array">
-			<label index="updater_message2">tt_news 3.0.0 comes with a new updater-script which can fix some of the most common problems when you're updating an existing tt_news 2.x installation.</label>
-			<label index="updater_message">More to come here</label>
-			<label index="updater_header">Important!</label>
+			<label index="updater_message">
+				  <![CDATA[
+				<p style="margin-bottom: 10px">
+				Identity brings Universally Unique Identifier (UUID) in TYPO3. 
+				A UUID is an identifier that is immutable and unique across time and space. 
+				</p>
+				
+				
+				<p style="margin-bottom: 10px">
+				A UUID is a 32 hexadecimal digit, for example:
+				<br />
+				<strong>550e8400-e29b-41d4-a716-446655440000</strong>
+				</p>
+				
+				<p style="margin-bottom: 10px">
+				To know more about the use and benefit of UUID consult page :
+				<a href="http://en.wikipedia.org/wiki/Universally_unique_identifier" target="_blank">http://en.wikipedia.org/wiki/Universally_unique_identifier</a>
+				</p>
+				
+					Some "uuid" fields are detected as missing. Please, open the 
+				]]>
+			</label>
+			<label index="updater_header">UUID fields are missing</label>
+			<label index="ok_header">UUID fields are OK</label>
+			<label index="ok_message">
+				  <![CDATA[
+				<p style="margin-bottom: 10px">
+				To know more about the use and benefit of UUID consult page :
+				<a href="http://en.wikipedia.org/wiki/Universally_unique_identifier" target="_blank">http://en.wikipedia.org/wiki/Universally_unique_identifier</a>
+				</p>
+				]]>
+			</label>
+			<label index="open_updater">Updater Script</label>
+			<label index="ok_table_header">UUID fields are OK</label>
+			<label index="information_table_header">Some table(s) are missing</label>
+			<label index="information_table_message">While checking the system, it has been detected some table(s) are missing. 
+			You should open up the Install tool and run the "Compare" tool under "Database Analyser"</label>
         </languageKey>
     </data>
 </T3locallang>

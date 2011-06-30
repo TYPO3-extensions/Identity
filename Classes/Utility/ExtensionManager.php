@@ -30,35 +30,106 @@
 class Tx_Identity_Utility_ExtensionManager {
 
 	/**
-	 * [Describe function...]
+	 * Display a message to the Extension Manager whether the database needs to be updated or not.
 	 *
-	 * @return	[type]		...
+	 * @return string the HTML message
 	 */
 	public function displayMessage(&$params, &$tsObj) {
 		$out = '';
 
-		if (t3lib_div::int_from_ver(TYPO3_version) < 4003000) {
-			// 4.3.0 comes with flashmessages styles. For older versions we include the needed styles here
-			$cssPath = $GLOBALS['BACK_PATH'] . t3lib_extMgm::extRelPath('tt_news');
-			$out .= '<link rel="stylesheet" type="text/css" href="' . $cssPath . 'compat/flashmessages.css" media="screen" />';
-		}
+		if ($this->needsUpdate()) {
+			$out .= '
+			<div style="">
+				<div class="typo3-message message-warning">
+					<div class="message-header">'
+						. $GLOBALS['LANG']->sL('LLL:EXT:identity/Resources/Private/Language/locallang.xml:updater_header') .
+					'</div>
+					<div class="message-body">
+						' . $GLOBALS['LANG']->sL('LLL:EXT:identity/Resources/Private/Language/locallang.xml:updater_message') . '
+						<a target="_blank"
+							style="text-decoration:underline;"
+							href="mod.php?&amp;id=0&amp;M=tools_em&amp;CMD[showExt]=identity&amp;SET[singleDetails]=updateModule">
+						' . $GLOBALS['LANG']->sL('LLL:EXT:identity/Resources/Private/Language/locallang.xml:open_updater') . '</a>.
+					</div>
+				</div>
+			</div>
+			';
 
-		$out .= '
-		<div style="position:absolute;top:10px;right:10px; width:300px;">
-			<div class="typo3-message message-information">
-   				<div class="message-header">' . $GLOBALS['LANG']->sL('LLL:EXT:uuid/Resources/Private/Language/locallang.xml:updater_header') . '</div>
-  				<div class="message-body">
-  					' . $GLOBALS['LANG']->sL('LLL:EXT:uuid/Resources/Private/Language/locallang.xml:updater_message') . '<br />
-  					<a style="text-decoration:underline;" href="index.php?&amp;id=0&amp;CMD[showExt]=tt_news&amp;SET[singleDetails]=updateModule">
-  					' . $GLOBALS['LANG']->sL('LLL:EXT:tt_news/locallang.xml:extmng.updatermsgLink') . '</a>
-  				</div>
-  			</div>
-  		</div>
-  		';
+		}
+		else {
+			$out .= '
+			<div style="">
+				<div class="typo3-message message-ok">
+					<div class="message-header">'
+						. $GLOBALS['LANG']->sL('LLL:EXT:identity/Resources/Private/Language/locallang.xml:ok_header') .
+					'</div>
+					<div class="message-body">
+						' . $GLOBALS['LANG']->sL('LLL:EXT:identity/Resources/Private/Language/locallang.xml:ok_message') . '
+					</div>
+				</div>
+			</div>
+			';
+		}
 
 		return $out;
 	}
+	
+	/**
+	 * Check the database and tells whether it needs update
+	 *
+	 * @return boolean
+	 */
+	protected function needsUpdate() {
+		
+			// instantiate the installer
+		$installer = t3lib_div::makeInstance('tx_install');
 
+			// load the SQL files
+		$tblFileContent = t3lib_div::getUrl(PATH_t3lib . 'stddb/tables.sql');
+		foreach ($GLOBALS['TYPO3_LOADED_EXT'] as $loadedExtConf) {
+			if (is_array($loadedExtConf) && $loadedExtConf['ext_tables.sql']) {
+				$tblFileContent .= LF . LF . LF . LF . t3lib_div::getUrl($loadedExtConf['ext_tables.sql']);
+			}
+		}
+
+
+		$fileContent = implode(
+				LF, $installer->getStatementArray($tblFileContent, 1, '^CREATE TABLE ')
+		);
+
+			// get the table definitions
+		$FDfile = $installer->getFieldDefinitions_fileContent($fileContent);
+		if (!count($FDfile)) {
+			die("Error: There were no 'CREATE TABLE' definitions in the provided file");
+		}
+
+			// get the current database definition
+		$FDdb = $installer->getFieldDefinitions_database();
+
+			// get a diff and check if a field uuid is missing somewhere
+		$diff = $installer->getDatabaseExtra($FDfile, $FDdb);
+		$update_statements = $installer->getUpdateSuggestions($diff);
+		$update_statements['add'] = $this->cleanUp($update_statements['add']);
+
+		return ! empty($update_statements['add']);
+	}
+	
+	/**
+	 * Remove statements that contains not a uuid statement
+	 *
+	 * @return boolean
+	 */
+	protected function cleanUp($statements) {
+		
+		$result = array();
+		foreach ($statements as $key => $statement) {
+			if (strpos($statement, 'ADD uuid ') !== FALSE) {
+				$result[$key] = $statement;
+			}
+		}
+		
+		return $result;
+	}
 }
 
 ?>

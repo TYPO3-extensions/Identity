@@ -9,7 +9,12 @@ class ux_tx_install extends tx_install {
 	 * @return	array		Array with information about table.
 	 */
 	function getFieldDefinitions_fileContent($fileContent) {
-		$this->includeTCA();
+		global $TCA;
+		// Load TCA only if necessary
+		if (!is_array($TCA)) {
+			#$this->includeTCA();
+			
+		}
 		$tableDefintions = parent::getFieldDefinitions_fileContent($fileContent);
 		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
 		$tableDefintions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefintions);
