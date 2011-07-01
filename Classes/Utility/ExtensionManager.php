@@ -112,7 +112,7 @@ class Tx_Identity_Utility_ExtensionManager {
 			// get a diff and check if a field uuid is missing somewhere
 		$diff = $installer->getDatabaseExtra($tableDefinitions, $FDdb);
 		$update_statements = $installer->getUpdateSuggestions($diff);
-		$update_statements['add'] = $installer->sanitizeUuid($update_statements['add']);
+		$update_statements['add'] = $installer->filterByIdentityField($update_statements['add']);
 
 		return ! empty($update_statements['add']);
 	}

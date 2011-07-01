@@ -607,11 +607,16 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 * @param array $statements
 	 * @return array
 	 */
-	public function sanitizeUuid($statements) {
+	public function filterByIdentityField($statements) {
+		
+		$identityConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'];
+		$identityProviders = $identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST];
+		$identityField = $identityProviders['recordUuid'][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
 		
 		$result = array();
 		foreach ($statements as $key => $statement) {
-			if (strpos($statement, 'ADD uuid ') !== FALSE) {
+			if (strpos($statement, 'ADD ' . $identityField . ' ') !== FALSE ||
+					strpos($statement, 'ADD KEY ' . $identityField . ' ') !== FALSE ) {
 				$result[$key] = $statement;
 			}
 		}

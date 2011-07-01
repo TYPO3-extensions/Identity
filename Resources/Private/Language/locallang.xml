@@ -9,6 +9,7 @@
     </meta>
     <data type="array">
         <languageKey index="default" type="array">
+			<label index="updater_header">UUID field(s) or key(s) are missing</label>
 			<label index="updater_message">
 				  <![CDATA[
 				<p style="margin-bottom: 10px">
@@ -28,10 +29,9 @@
 				<a href="http://en.wikipedia.org/wiki/Universally_unique_identifier" target="_blank">http://en.wikipedia.org/wiki/Universally_unique_identifier</a>
 				</p>
 				
-					Some "uuid" fields are detected as missing. Please, launch the 
+					Some "uuid" field(s) or key(s) are detected as missing. Please, launch the 
 				]]>
 			</label>
-			<label index="updater_header">UUID fields are missing</label>
 			<label index="ok_header">UUID fields are OK</label>
 			<label index="ok_message">
 				  <![CDATA[
@@ -42,7 +42,7 @@
 				]]>
 			</label>
 			<label index="open_updater">Updater Script</label>
-			<label index="ok_table_header">UUID are OK and values have been checked</label>
+			<label index="ok_table_header">UUID fields are OK and values have been successfully checked</label>
 			<label index="information_table_header">Some table(s) are missing</label>
 			<label index="information_table_message">While checking the system, it has been detected some table(s) are missing. 
 			You should open up the Install tool and run the "Compare" tool under "Database Analyser"</label>

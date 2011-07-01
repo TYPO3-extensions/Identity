@@ -133,7 +133,7 @@ class ext_update {
 			// get a diff and check if a field uuid is missing somewhere
 		$diff = $this->installer->getDatabaseExtra($tableDefinitions, $FDdb);
 		$statements = $this->installer->getUpdateSuggestions($diff);
-		$statements['add'] = $this->installer->sanitizeUuid($statements['add']);
+		$statements['add'] = $this->installer->filterByIdentityField($statements['add']);
 		return $statements;
 	}
 	
@@ -146,9 +146,9 @@ class ext_update {
 		$content .= '
 			<div style="width: 600px; margin-top: 20px">
 				<div class="typo3-message message-ok">
-					<div class="message-header">'
-						. $GLOBALS['LANG']->sL('LLL:EXT:identity/Resources/Private/Language/locallang.xml:ok_table_header') .
-					'</div>
+					<div class="message-header">
+						' . $GLOBALS['LANG']->sL('LLL:EXT:identity/Resources/Private/Language/locallang.xml:ok_table_header') . '.
+					</div>
 					<div class="message-body">
 				</div>
 			</div>
