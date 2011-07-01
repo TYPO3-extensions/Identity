@@ -46,16 +46,47 @@ class ext_update {
 	}
 
 	/**
+	 * Constructor
+	 *
+	 */
+	public function __construct() {
+			// instantiate a light installer
+			/* @var $this->installer Tx_Identity_Install_Installer */
+		$this->installer = t3lib_div::makeInstance('Tx_Identity_Install_Installer');
+	}
+
+	/**
 	 * Main function, returning the HTML content of the update wizard
 	 *
 	 * @return	string	HTML to display
 	 */
 	public function main() {
 
-			// instantiate a light installer
-			/* @var $installer Tx_Identity_Install_Installer */
-		$installer = t3lib_div::makeInstance('Tx_Identity_Install_Installer');
+		$statements = $this->getStatements();
 
+		if (!empty($statements['add'])) {
+			$content = $this->renderForm($statements);
+
+		}
+		else {
+			$content .= $this->renderMessageOk();
+		}
+
+			// display a notification also if missing table are found
+		if (!empty($statements['create_table'])) {
+			$content .= $this->renderMessageTable();
+
+		}
+		return $content;
+	}
+	
+	/**
+	 * Main function, returning the HTML content of the update wizard
+	 *
+	 * @return	string	HTML to display
+	 */
+	protected function getStatements() {
+		
 			// load the SQL files
 		$tblFileContent = t3lib_div::getUrl(PATH_t3lib . 'stddb/tables.sql');
 		foreach ($GLOBALS['TYPO3_LOADED_EXT'] as $loadedExtConf) {
@@ -64,91 +95,49 @@ class ext_update {
 			}
 		}
 
-
 		$fileContent = implode(
-				LF, $installer->getStatementArray($tblFileContent, 1, '^CREATE TABLE ')
+				LF, $this->installer->getStatementArray($tblFileContent, 1, '^CREATE TABLE ')
 		);
 
 			// get the table definitions
-		$tableDefinitions = $installer->getFieldDefinitions_fileContent($fileContent);
+		$tableDefinitions = $this->installer->getFieldDefinitions_fileContent($fileContent);
 		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
 		$tableDefinitions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefinitions);
 		if (!count($tableDefinitions)) {
 			die("Error: There were no 'CREATE TABLE' definitions in the provided file");
 		}
 
-
 			// Execute the statement if button submit has been pressed
 		if (t3lib_div::_GP('update') == 'doUpdate') {
 
-			$statement = t3lib_div::_GP('TYPO3_INSTALL');
-			if (is_array($statement['database_update'])) {
-				$FDdb = $installer->getFieldDefinitions_database();
-				$diff = $installer->getDatabaseExtra($tableDefinitions, $FDdb);
-				$update_statements = $installer->getUpdateSuggestions($diff);
+			$parameters = t3lib_div::_GP('TYPO3_INSTALL');
+			if (is_array($parameters['database_update'])) {
+				$FDdb = $this->installer->getFieldDefinitions_database();
+				$diff = $this->installer->getDatabaseExtra($tableDefinitions, $FDdb);
+				$statements = $this->installer->getUpdateSuggestions($diff);
 
 				$results = array();
-				$results[] = $installer->performUpdateQueries($update_statements['add'], $statement['database_update']);
+				$results[] = $this->installer->performUpdateQueries($statements['add'], $parameters['database_update']);
 			}
 		}
 
 			// get the current database definition
-		$FDdb = $installer->getFieldDefinitions_database();
+		$FDdb = $this->installer->getFieldDefinitions_database();
 
 			// get a diff and check if a field uuid is missing somewhere
-		$diff = $installer->getDatabaseExtra($tableDefinitions, $FDdb);
-		$update_statements = $installer->getUpdateSuggestions($diff);
-		$update_statements['add'] = $installer->sanitizeUuid($update_statements['add']);
-		
-
-		if (!empty($update_statements['add'])) {
-			$content = '
-				<style>
-					fieldset {
-						border: 0;
-					}
-					legend {
-						font-weight: bold;
-						margin-left: 1em;
-					}
-					fieldset li {
-						clear: left;
-						float: left;
-						margin-bottom: 0.5em;
-						width: 100%;
-					}
-					.t3-install-form-label-after label {
-						padding-left: 1em;
-					}
-					genera...1016810 (line 117)
-					.t3-install-form-label-after label, .t3-install-form-label-above label {
-						display: block;
-						float: none;
-						margin-right: 0;
-						width: auto;
-					}
-				</style>
-			';
-			$content .= '
-				<p style="margin-bottom: 10px">
-					There seems to be a number of differencies
-					between the database and the selected
-					SQL-file.
-					<br />
-					Please select which statements you want to
-					execute in order to update your database:
-				</p>
-				';
-			$content .=	'<form action="mod.php?&id=0&M=tools_em&CMD[showExt]=identity&SET[singleDetails]=updateModule" method="post">';
-			$content .= $installer->generateUpdateDatabaseForm_checkboxes($update_statements['add'],'Add fields');
-			$content .= '<input type="hidden" name="update" value ="doUpdate">';
-			$content .= '<p><input type="submit" name="submitButton" value ="Update"></p>';
-			$content .= '</form>';
-
-
-		}
-		else {
-			$content .= '
+		$diff = $this->installer->getDatabaseExtra($tableDefinitions, $FDdb);
+		$statements = $this->installer->getUpdateSuggestions($diff);
+		$statements['add'] = $this->installer->sanitizeUuid($statements['add']);
+		return $statements;
+	}
+	
+	/**
+	 * Render message UUID OK
+	 *
+	 * @return	string	HTML to display
+	 */
+	protected function renderMessageOk() {
+		$content .= '
 			<div style="width: 600px; margin-top: 20px">
 				<div class="typo3-message message-ok">
 					<div class="message-header">'
@@ -158,12 +147,16 @@ class ext_update {
 				</div>
 			</div>
 			';
-
-		}
-
-			// display a notification also if missing table are found
-		if (!empty($update_statements['create_table'])) {
-			$content .= '
+		return $content;
+	}
+	
+	/**
+	 * Render message about missing table
+	 *
+	 * @return	string	HTML to display
+	 */
+	protected function renderMessageTable() {
+		$content .= '
 			<div style="width: 600px; margin-top: 20px">
 				<div class="typo3-message message-information">
 					<div class="message-header">'
@@ -174,8 +167,59 @@ class ext_update {
 				'</div>
 			</div>
 			';
-
-		}
+		return $content;
+	}
+	
+	/**
+	 * Render the update statement form 
+	 *
+	 * @param array $statements
+	 * @return	string	HTML to display
+	 */
+	protected function renderForm($statements) {
+		
+		$content = '
+			<style>
+				fieldset {
+					border: 0;
+				}
+				legend {
+					font-weight: bold;
+					margin-left: 1em;
+				}
+				fieldset li {
+					clear: left;
+					float: left;
+					margin-bottom: 0.5em;
+					width: 100%;
+				}
+				.t3-install-form-label-after label {
+					padding-left: 1em;
+				}
+				genera...1016810 (line 117)
+				.t3-install-form-label-after label, .t3-install-form-label-above label {
+					display: block;
+					float: none;
+					margin-right: 0;
+					width: auto;
+				}
+			</style>
+		';
+		$content .= '
+			<p style="margin-bottom: 10px">
+				There seems to be a number of differencies
+				between the database and the selected
+				SQL-file.
+				<br />
+				Please select which statements you want to
+				execute in order to update your database:
+			</p>
+			';
+		$content .=	'<form action="mod.php?&id=0&M=tools_em&CMD[showExt]=identity&SET[singleDetails]=updateModule" method="post">';
+		$content .= $this->installer->generateUpdateDatabaseForm_checkboxes($statements['add'],'Add fields');
+		$content .= '<input type="hidden" name="update" value ="doUpdate">';
+		$content .= '<p><input type="submit" name="submitButton" value ="Update"></p>';
+		$content .= '</form>';
 		return $content;
 	}
 }
