@@ -23,7 +23,7 @@ class tx_identity_t3lib_db_postprocess implements t3lib_DB_preProcessQueryHook {
 	 * @param t3lib_DB $parentObject
 	 * @return void
 	 */
-	public function INSERTquery_preProcessAction($table, &$fieldsValues, $noQuoteFields, t3lib_DB $parentObject) {
+	public function INSERTquery_preProcessAction(&$table, array &$fieldsValues, &$noQuoteFields, t3lib_DB $parentObject) {
 		$identityField = $this->identityMap->getIdentifierFieldForResourceLocation($table);
 		if ($identityField) {
 			$fieldsValues[$identityField] = $this->identityMap->getIdentifierForNewResourceLocation($table);
@@ -40,7 +40,7 @@ class tx_identity_t3lib_db_postprocess implements t3lib_DB_preProcessQueryHook {
 	 * @param t3lib_DB $parentObject
 	 * @return void
 	 */
-	public function INSERTmultipleRows_preProcessAction($table, $fields, &$rows, $noQuoteFields, t3lib_DB $parentObject) {
+	public function INSERTmultipleRows_preProcessAction(&$table, array &$fields, array &$rows, &$noQuoteFields, t3lib_DB $parentObject) {
 		$identityField = $this->identityMap->getIdentifierFieldForResourceLocation($table);
 		if ($identityField) {
 			foreach ($rows as &$row) {
@@ -59,7 +59,7 @@ class tx_identity_t3lib_db_postprocess implements t3lib_DB_preProcessQueryHook {
 	 * @param t3lib_DB $parentObject
 	 * @return void
 	 */
-	public function UPDATEquery_preProcessAction($table, $where, array $fieldsValues, $noQuoteFields, t3lib_DB $parentObject) {
+	public function UPDATEquery_preProcessAction(&$table, &$where, array &$fieldsValues, &$noQuoteFields, t3lib_DB $parentObject) {
 		// Do nothing
 	}
 
@@ -71,7 +71,7 @@ class tx_identity_t3lib_db_postprocess implements t3lib_DB_preProcessQueryHook {
 	 * @param t3lib_DB $parentObject
 	 * @return void
 	 */
-	public function DELETEquery_preProcessAction($table, $where, t3lib_DB $parentObject) {
+	public function DELETEquery_preProcessAction(&$table, &$where, t3lib_DB $parentObject) {
 		// Do nothing
 	}
 
@@ -82,7 +82,7 @@ class tx_identity_t3lib_db_postprocess implements t3lib_DB_preProcessQueryHook {
 	 * @param t3lib_DB $parentObject
 	 * @return void
 	 */
-	public function TRUNCATEquery_preProcessAction($table, t3lib_DB $parentObject) {
+	public function TRUNCATEquery_preProcessAction(&$table, t3lib_DB $parentObject) {
 		// Do nothing
 	}
 }

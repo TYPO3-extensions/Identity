@@ -33,6 +33,11 @@
 class Tx_Identity_Map implements t3lib_Singleton {
 
 	/**
+	 * @var bool
+	 */
+	protected $isInitialized = false;
+
+	/**
 	 * @var Tx_Identity_ProviderInterface
 	 */
 	protected $defaultIdentityProvider;
@@ -51,10 +56,13 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * Constructor method for the identifier registry
 	 * @api
 	 */
-	public function __construct() {
-		$this->initializeIdentityProviders();
-		$this->initializeDefaultIdentityProvider();
-		$this->initializeTableSpecificIdentityProviders();
+	public function initializeObject() {
+		if (!$this->isInitialized) {
+			$this->initializeIdentityProviders();
+			$this->initializeDefaultIdentityProvider();
+			$this->initializeTableSpecificIdentityProviders();
+			$this->isInitialized = true;
+		}
 	}
 
 	/**
@@ -126,7 +134,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 				}
 			}
 		} else {
-			throw Exception('TCA is not available at the moment.', 1300109740);
+			throw new Exception('TCA is not available at the moment.', 1300109740);
 		}
 	}
 
@@ -136,6 +144,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * @param string $tablename
 	 */
 	public function getIdentifierFieldForResourceLocation($tablename) {
+		$this->initializeObject();
 		if (isset($this->tableSpecificIdentityProviders[$tablename])) {
 			// Look for a more specific identity provider first
 			return $this->tableSpecificIdentityProviders[$tablename]['field'];
@@ -154,6 +163,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * @api
 	 */
 	public function getIdentifierForResourceLocation($tablename, $uid) {
+		$this->initializeObject();
 		if (isset($this->tableSpecificIdentityProviders[$tablename])) {
 			// Look for a more specific identity provider first
 			return $this->tableSpecificIdentityProviders[$tablename]['provider']->getIdentifierForResourceLocation($tablename, $uid);
@@ -170,10 +180,11 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * @return void
 	 */
 	public function getIdentifierForNewResourceLocation($tablename) {
+		$this->initializeObject();
 		if (isset($this->tableSpecificIdentityProviders[$tablename])) {
-			$this->tableSpecificIdentityProviders[$tablename]['provider']->getIdentifierForNewResourceLocation($tablename);
+			return $this->tableSpecificIdentityProviders[$tablename]['provider']->getIdentifierForNewResourceLocation($tablename);
 		} else {
-			$this->defaultIdentityProvider['provider']->getIdentifierForNewResourceLocation($tablename);
+			return $this->defaultIdentityProvider['provider']->getIdentifierForNewResourceLocation($tablename);
 		}
 	}
 
@@ -185,6 +196,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * @api
 	 */
 	public function getResourceLocationForIdentifier($identifier) {
+		$this->initializeObject();
 		// Ask each table specific provider first
 		foreach ($this->tableSpecificIdentityProviders as $tablename=>$providerArray) {
 			try {
@@ -208,6 +220,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * @api
 	 */
 	public function rebuild() {
+		$this->initializeObject();
 		foreach ($this->identityProviders as $providerArray) {
 			if (method_exists($providerArray['provider'], 'rebuild')) {
 				$providerArray['provider']->rebuild();
@@ -220,6 +233,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * @api
 	 */
 	public function commit() {
+		$this->initializeObject();
 		foreach ($this->identityProviders as $providerArray) {
 			if (method_exists($providerArray['provider'], 'commit')) {
 				$providerArray['provider']->commit();
