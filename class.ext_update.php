@@ -53,6 +53,7 @@ class ext_update {
 			// instantiate a light installer
 			/* @var $this->installer Tx_Identity_Install_Installer */
 		$this->installer = t3lib_div::makeInstance('Tx_Identity_Install_Installer');
+		$this->identityMap = t3lib_div::makeInstance('Tx_Identity_Map');
 	}
 
 	/**
@@ -63,7 +64,7 @@ class ext_update {
 	public function main() {
 
 		$statements = $this->getStatements();
-
+		
 		if (!empty($statements['add'])) {
 			$content = $this->renderForm($statements);
 
@@ -77,6 +78,11 @@ class ext_update {
 			$content .= $this->renderMessageTable();
 
 		}
+		
+			// Update UUID values
+		$this->identityMap->rebuild();
+		$this->identityMap->commit();
+		
 		return $content;
 	}
 	

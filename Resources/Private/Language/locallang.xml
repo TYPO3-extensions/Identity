@@ -42,7 +42,7 @@
 				]]>
 			</label>
 			<label index="open_updater">Updater Script</label>
-			<label index="ok_table_header">UUID fields are OK</label>
+			<label index="ok_table_header">UUID are OK and values have been checked</label>
 			<label index="information_table_header">Some table(s) are missing</label>
 			<label index="information_table_message">While checking the system, it has been detected some table(s) are missing. 
 			You should open up the Install tool and run the "Compare" tool under "Database Analyser"</label>
