@@ -23,7 +23,7 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  * ************************************************************* */
 
-require_once(t3lib_extMgm::extPath('install') . 'mod/class.tx_install.php');
+require_once(t3lib_extMgm::extPath('identity') . 'Classes/Install/Installer.php');
 
 /**
  * Class for updating identity
@@ -44,23 +44,6 @@ class ext_update {
 	public function access() {
 		return TRUE;
 	}
-	
-	/**
-	 * Remove statements that contains not a uuid statement
-	 *
-	 * @return boolean
-	 */
-	protected function cleanUp($statements) {
-		
-		$result = array();
-		foreach ($statements as $key => $statement) {
-			if (strpos($statement, 'ADD uuid ') !== FALSE) {
-				$result[$key] = $statement;
-			}
-		}
-		
-		return $result;
-	}
 
 	/**
 	 * Main function, returning the HTML content of the update wizard
@@ -69,8 +52,9 @@ class ext_update {
 	 */
 	public function main() {
 
-			// instantiate the installer
-		$installer = t3lib_div::makeInstance('tx_install');
+			// instantiate a light installer
+			/* @var $installer Tx_Identity_Install_Installer */
+		$installer = t3lib_div::makeInstance('Tx_Identity_Install_Installer');
 
 			// load the SQL files
 		$tblFileContent = t3lib_div::getUrl(PATH_t3lib . 'stddb/tables.sql');
@@ -86,8 +70,10 @@ class ext_update {
 		);
 
 			// get the table definitions
-		$FDfile = $installer->getFieldDefinitions_fileContent($fileContent);
-		if (!count($FDfile)) {
+		$tableDefinitions = $installer->getFieldDefinitions_fileContent($fileContent);
+		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
+		$tableDefinitions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefinitions);
+		if (!count($tableDefinitions)) {
 			die("Error: There were no 'CREATE TABLE' definitions in the provided file");
 		}
 
@@ -98,7 +84,7 @@ class ext_update {
 			$statement = t3lib_div::_GP('TYPO3_INSTALL');
 			if (is_array($statement['database_update'])) {
 				$FDdb = $installer->getFieldDefinitions_database();
-				$diff = $installer->getDatabaseExtra($FDfile, $FDdb);
+				$diff = $installer->getDatabaseExtra($tableDefinitions, $FDdb);
 				$update_statements = $installer->getUpdateSuggestions($diff);
 
 				$results = array();
@@ -110,9 +96,9 @@ class ext_update {
 		$FDdb = $installer->getFieldDefinitions_database();
 
 			// get a diff and check if a field uuid is missing somewhere
-		$diff = $installer->getDatabaseExtra($FDfile, $FDdb);
+		$diff = $installer->getDatabaseExtra($tableDefinitions, $FDdb);
 		$update_statements = $installer->getUpdateSuggestions($diff);
-		$update_statements['add'] = $this->cleanUp($update_statements['add']);
+		$update_statements['add'] = $installer->sanitizeUuid($update_statements['add']);
 		
 
 		if (!empty($update_statements['add'])) {
@@ -192,10 +178,9 @@ class ext_update {
 		}
 		return $content;
 	}
-
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/templatedisplay/class.ext_update.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/templatedisplay/class.ext_update.php']);
+if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/identity/class.ext_update.php']) {
+	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/identity/class.ext_update.php']);
 }
 ?>

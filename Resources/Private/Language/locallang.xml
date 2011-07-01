@@ -28,7 +28,7 @@
 				<a href="http://en.wikipedia.org/wiki/Universally_unique_identifier" target="_blank">http://en.wikipedia.org/wiki/Universally_unique_identifier</a>
 				</p>
 				
-					Some "uuid" fields are detected as missing. Please, open the 
+					Some "uuid" fields are detected as missing. Please, launch the 
 				]]>
 			</label>
 			<label index="updater_header">UUID fields are missing</label>

@@ -81,8 +81,9 @@ class Tx_Identity_Utility_ExtensionManager {
 	 */
 	protected function needsUpdate() {
 		
-			// instantiate the installer
-		$installer = t3lib_div::makeInstance('tx_install');
+			// instantiate a light installer
+			/* @var $installer Tx_Identity_Install_Installer */
+		$installer = t3lib_div::makeInstance('Tx_Identity_Install_Installer');
 
 			// load the SQL files
 		$tblFileContent = t3lib_div::getUrl(PATH_t3lib . 'stddb/tables.sql');
@@ -98,8 +99,10 @@ class Tx_Identity_Utility_ExtensionManager {
 		);
 
 			// get the table definitions
-		$FDfile = $installer->getFieldDefinitions_fileContent($fileContent);
-		if (!count($FDfile)) {
+		$tableDefinitions = $installer->getFieldDefinitions_fileContent($fileContent);
+		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
+		$tableDefinitions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefinitions);
+		if (!count($tableDefinitions)) {
 			die("Error: There were no 'CREATE TABLE' definitions in the provided file");
 		}
 
@@ -107,9 +110,9 @@ class Tx_Identity_Utility_ExtensionManager {
 		$FDdb = $installer->getFieldDefinitions_database();
 
 			// get a diff and check if a field uuid is missing somewhere
-		$diff = $installer->getDatabaseExtra($FDfile, $FDdb);
+		$diff = $installer->getDatabaseExtra($tableDefinitions, $FDdb);
 		$update_statements = $installer->getUpdateSuggestions($diff);
-		$update_statements['add'] = $this->cleanUp($update_statements['add']);
+		$update_statements['add'] = $installer->sanitizeUuid($update_statements['add']);
 
 		return ! empty($update_statements['add']);
 	}
