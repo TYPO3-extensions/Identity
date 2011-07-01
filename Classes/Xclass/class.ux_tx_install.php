@@ -12,13 +12,12 @@ class ux_tx_install extends tx_install {
 		global $TCA;
 		// Load TCA only if necessary
 		if (!is_array($TCA)) {
-			#$this->includeTCA();
-			
+			$this->includeTCA();
 		}
-		$tableDefintions = parent::getFieldDefinitions_fileContent($fileContent);
+		$tableDefinitions = parent::getFieldDefinitions_fileContent($fileContent);
 		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
-		$tableDefintions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefintions);
-		return $tableDefintions;
+		$tableDefinitions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefinitions);
+		return $tableDefinitions;
 	}
 }
 ?>

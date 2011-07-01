@@ -9,10 +9,10 @@ class ux_t3lib_install extends t3lib_install {
 	 * @return	array		Array with information about table.
 	 */
 	function getFieldDefinitions_fileContent($fileContent) {
-		$tableDefintions = parent::getFieldDefinitions_fileContent($fileContent);
+		$tableDefinitions = parent::getFieldDefinitions_fileContent($fileContent);
 		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
-		$tableDefintions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefintions);
-		return $tableDefintions;
+		$tableDefinitions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefinitions);
+		return $tableDefinitions;
 	}
 }
 ?>
