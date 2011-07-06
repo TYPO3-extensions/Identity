@@ -228,8 +228,8 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 				$identityField => $uuid,
 				'foreign_tablename' => $tablename,
 			);
+			return $uuid;
 		}
-		return $uuid;
 	}
 
 	/**

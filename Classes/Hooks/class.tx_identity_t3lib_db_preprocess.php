@@ -1,6 +1,6 @@
 <?php
 
-class tx_identity_t3lib_db_postprocess implements t3lib_DB_preProcessQueryHook {
+class tx_identity_t3lib_db_preprocess implements t3lib_DB_preProcessQueryHook {
 
 	/**
 	 * @var Tx_Identity_Map
@@ -24,9 +24,11 @@ class tx_identity_t3lib_db_postprocess implements t3lib_DB_preProcessQueryHook {
 	 * @return void
 	 */
 	public function INSERTquery_preProcessAction(&$table, array &$fieldsValues, &$noQuoteFields, t3lib_DB $parentObject) {
-		$identityField = $this->identityMap->getIdentifierFieldForResourceLocation($table);
-		if ($identityField) {
-			$fieldsValues[$identityField] = $this->identityMap->getIdentifierForNewResourceLocation($table);
+		// Check if applicable
+		$identifier = $this->identityMap->getIdentifierForNewResourceLocation($table);
+		if ($identifier !== NULL) {
+			$identityField = $this->identityMap->getIdentifierFieldForResourceLocation($table);
+			$fieldsValues[$identityField] = $identifier;
 		}
 	}
 
@@ -41,10 +43,13 @@ class tx_identity_t3lib_db_postprocess implements t3lib_DB_preProcessQueryHook {
 	 * @return void
 	 */
 	public function INSERTmultipleRows_preProcessAction(&$table, array &$fields, array &$rows, &$noQuoteFields, t3lib_DB $parentObject) {
-		$identityField = $this->identityMap->getIdentifierFieldForResourceLocation($table);
-		if ($identityField) {
+		// Check if applicable
+		$identifier = $this->identityMap->getIdentifierForNewResourceLocation($table);
+		if ($identifier !== NULL) {
+			$identityField = $this->identityMap->getIdentifierFieldForResourceLocation($table);
 			foreach ($rows as &$row) {
-				$row[$identityField] = $this->identityMap->getIdentifierForNewResourceLocation($table);
+				$fieldsValues[$identityField] = $identifier;
+				$identifier = $this->identityMap->getIdentifierForNewResourceLocation($table);
 			}
 		}
 	}
