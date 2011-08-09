@@ -23,7 +23,9 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  * ************************************************************* */
 
-require_once(t3lib_extMgm::extPath('identity') . 'Classes/Install/Installer.php');
+if (t3lib_extMgm::isLoaded('identity')) {
+	require_once(t3lib_extMgm::extPath('identity') . 'Classes/Install/Installer.php');
+}
 
 /**
  * Class for updating identity
@@ -50,10 +52,12 @@ class ext_update {
 	 *
 	 */
 	public function __construct() {
-			// instantiate a light installer
-			/* @var $this->installer Tx_Identity_Install_Installer */
-		$this->installer = t3lib_div::makeInstance('Tx_Identity_Install_Installer');
-		$this->identityMap = t3lib_div::makeInstance('Tx_Identity_Map');
+		if (t3lib_extMgm::isLoaded('identity')) {
+				// instantiate a light installer
+				/* @var $this->installer Tx_Identity_Install_Installer */
+			$this->installer = t3lib_div::makeInstance('Tx_Identity_Install_Installer');
+			$this->identityMap = t3lib_div::makeInstance('Tx_Identity_Map');
+		}
 	}
 
 	/**
@@ -62,6 +66,9 @@ class ext_update {
 	 * @return	string	HTML to display
 	 */
 	public function main() {
+		if (!t3lib_extMgm::isLoaded('identity')) {
+			return '';
+		}
 
 		$statements = $this->getStatements();
 		
