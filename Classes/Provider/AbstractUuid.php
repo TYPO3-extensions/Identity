@@ -311,7 +311,7 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 		foreach ($GLOBALS['TCA'] as $tablename => $configuration) {
 			$rows = $this->db->exec_SELECTgetRows(
 				$tablename . '.' . $identityField . ', ' . $tablename . '.uid',
-					$this->identityTable . ' RIGHT JOIN ' . $tablename . ' ON (' . $this->identityTable . '.' . $identityField . ' = ' . $tablename . '.' . $identityField . ')',
+					$this->identityTable . ' RIGHT JOIN ' . $tablename . ' ON ' . $this->identityTable . '.' . $identityField . ' = ' . $tablename . '.' . $identityField,
 					$this->identityTable . '.uid IS NULL'
 			);
 			foreach ($rows as $row) {
@@ -333,10 +333,10 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 		foreach ($GLOBALS['TCA'] as $tablename => $configuration) {
 			$rows = $this->db->exec_SELECTgetRows(
 				$this->identityTable . '.' . $identityField . ', ' . $this->identityTable . '.foreign_uid',
-					$tablename . ' RIGHT JOIN ' . $this->identityTable . ' ON (' .
+					$tablename . ' RIGHT JOIN ' . $this->identityTable . ' ON ' .
 					$this->identityTable . '.' . $identityField .
 					' = ' .
-					$tablename . '.' . $identityField . ' AND ' . $this->identityTable . '.foreign_uid = ' . $tablename . '.uid)',
+					$tablename . '.' . $identityField . ' AND ' . $this->identityTable . '.foreign_uid = ' . $tablename . '.uid',
 					'foreign_tablename LIKE ' . $tablename . ' AND ' . $tablename . '.uid IS NULL'
 			);
 			foreach ($rows as $row) {
