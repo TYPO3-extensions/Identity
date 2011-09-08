@@ -41,12 +41,12 @@ $GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY] = array(
 	Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST	=> array(
 		'recordUuid'	=> array(
 			Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD					=>	'uuid',
-			Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE	=>	'varchar(36) NOT NULL default \'\'',
+			Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE	=>	'char(36) NOT NULL default \'\'',
 			Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS					=>	'Tx_Identity_Provider_RecordUuid',
 		),
 		'staticRecordUuid'	=> array(
 			Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD					=>	'uuid',
-			Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE	=>	'varchar(36) NOT NULL default \'\'',
+			Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE	=>	'char(36) NOT NULL default \'\'',
 			Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS					=>	'Tx_Identity_Provider_StaticRecordUuid',
 		),
 	),
