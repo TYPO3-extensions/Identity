@@ -339,8 +339,10 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 					$tablename . '.' . $identityField . ' AND ' . $this->identityTable . '.foreign_uid = ' . $tablename . '.uid',
 					'foreign_tablename LIKE ' . $tablename . ' AND ' . $tablename . '.uid IS NULL'
 			);
-			foreach ($rows as $row) {
-				$this->unregisterUUID($row[$identityField], $tablename, $row['uid']);
+			if (is_array($rows)) {
+				foreach ($rows as $row) {
+					$this->unregisterUUID($row[$identityField], $tablename, $row['uid']);
+				}
 			}
 		}
 	}

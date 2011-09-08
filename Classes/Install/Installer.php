@@ -33,19 +33,19 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 
 	/**
 	 * Caching ou tput of $GLOBALS['TYPO3_DB']->admin_get_charsets()
-	 * 
+	 *
 	 * @var array
 	 */
-	protected $character_sets = array(); 
+	protected $character_sets = array();
 
 	/**
 	 * Prefix used for tables/fields when deleted/renamed.
-	 * 
+	 *
 	 * @var string
-	 */	
+	 */
 	protected $deletedPrefixKey = 'zzz_deleted_';
-	
-	
+
+
 	/**
 	 * Returns an array where every entry is a single SQL-statement. Input must be formatted like an ordinary MySQL-dump files.
 	 *
@@ -88,8 +88,8 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 
 		return $statementArray;
 	}
-	
-	
+
+
 	/*************************************
 	 *
 	 * SQL
@@ -214,8 +214,8 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 
 		return $collation;
 	}
-	
-	
+
+
 	/**
 	 * Multiplies varchars/tinytext fields in size according to $this->multiplySize
 	 * Useful if you want to use UTF-8 in the database and needs to extend the field sizes in the database so UTF-8 chars are not discarded. For most charsets available as single byte sets, multiplication with 2 should be enough. For chinese, use 3.
@@ -225,12 +225,12 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 * @access private
 	 * @see getFieldDefinitions_fileContent()
 	 */
-	function getFieldDefinitions_sqlContent_parseTypes(&$total) {
+	function getFieldDefinitions_sqlContent_parseTypes(array &$total) {
 
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['multiplyDBfieldSize'] >= 1 && $GLOBALS['TYPO3_CONF_VARS']['SYS']['multiplyDBfieldSize'] <= 5) {
 			$this->multiplySize = (double) $GLOBALS['TYPO3_CONF_VARS']['SYS']['multiplyDBfieldSize'];
 		}
-		
+
 		$mSize = (double) $this->multiplySize;
 		if ($mSize > 1) {
 
@@ -292,7 +292,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 			}
 		}
 	}
-	
+
 	/**
 	 * Reads the field definitions for the current database
 	 *
@@ -374,7 +374,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 * @param	array		MySQL result row
 	 * @return	string		Field definition
 	 */
-	function assembleFieldDefinition($row) {
+	function assembleFieldDefinition(array $row) {
 		$field = array($row['Type']);
 
 		if ($row['Null'] == 'NO') {
@@ -392,8 +392,8 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 
 		return implode(' ', $field);
 	}
-	
-	
+
+
 	/**
 	 * Compares two arrays with field information and returns information about fields that are MISSING and fields that have CHANGED.
 	 * FDsrc and FDcomp can be switched if you want the list of stuff to remove rather than update.
@@ -404,7 +404,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 * @param	boolean		If set, this function ignores NOT NULL statements of the SQL file field definition when comparing current field definition from database with field definition from SQL file. This way, NOT NULL statements will be executed when the field is initially created, but the SQL parser will never complain about missing NOT NULL statements afterwards.
 	 * @return	array		Returns an array with 1) all elements from $FDsrc that is not in $FDcomp (in key 'extra') and 2) all elements from $FDsrc that is different from the ones in $FDcomp
 	 */
-	function getDatabaseExtra($FDsrc, $FDcomp, $onlyTableList = '', $ignoreNotNullWhenComparing = TRUE) {
+	function getDatabaseExtra(array $FDsrc, array $FDcomp, $onlyTableList = '', $ignoreNotNullWhenComparing = TRUE) {
 		$extraArr = array();
 		$diffArr = array();
 
@@ -453,8 +453,8 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 
 		return $output;
 	}
-	
-	
+
+
 	/**
 	 * Returns an array with SQL-statements that is needed to update according to the diff-array
 	 *
@@ -462,11 +462,11 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 * @param	string		List of fields in diff array to take notice of.
 	 * @return	array		Array of SQL statements (organized in keys depending on type)
 	 */
-	function getUpdateSuggestions($diffArr, $keyList = 'extra,diff') {
+	function getUpdateSuggestions(array $diffArr, $keyList = 'extra,diff') {
 		$statements = array();
 		$deletedPrefixKey = $this->deletedPrefixKey;
 		$remove = 0;
-		if ($keyList == 'remove') {
+		if ($keyList === 'remove') {
 			$remove = 1;
 			$keyList = 'extra';
 		}
@@ -545,7 +545,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 								// Only consider statements which are missing in the database but don't remove existing properties
 							if (!$remove) {
 								if (!$info['whole_table']) { // If the whole table is created at once, we take care of this later by imploding all elements of $info['extra']
-									if ($fN == 'CLEAR') {
+									if ($fN === 'CLEAR') {
 											// Truncate table must happen later, not now
 											// Valid values for CLEAR: 1=only clear if keys are missing, 2=clear anyway (force)
 										if (count($info['keys']) || $fV == 2) {
@@ -600,19 +600,19 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 		}
 		return $statements;
 	}
-	
+
 	/**
 	 * Remove statements that contains not a uuid statement
 	 *
 	 * @param array $statements
 	 * @return array
 	 */
-	public function filterByIdentityField($statements) {
-		
+	public function filterByIdentityField(array $statements) {
+
 		$identityConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'];
 		$identityProviders = $identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST];
 		$identityField = $identityProviders['recordUuid'][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
-		
+
 		$result = array();
 		foreach ($statements as $key => $statement) {
 			if (strpos($statement, 'ADD ' . $identityField . ' ') !== FALSE ||
@@ -620,15 +620,15 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 				$result[$key] = $statement;
 			}
 		}
-		
+
 		return $result;
 	}
 
-	
+
 	protected $templateFilePath = 'typo3/sysext/install/Resources/Private/Templates/';
 	protected $dbUpdateCheckboxPrefix = 'TYPO3_INSTALL[database_update]'; // Prefix for checkbox fields when updating database.
 	protected $backPath = '../'; // Backpath (used for icons etc.)
-	
+
 	/**
 	 * Creates a table which checkboxes for updating database.
 	 *
@@ -640,7 +640,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 * @param boolean $cVfullMsg If set, will show the prefix "Current value" if $currentValue is given.
 	 * @return string HTML table with checkboxes for update. Must be wrapped in a form.
 	 */
-	function generateUpdateDatabaseForm_checkboxes($arr,$label,$checked=1,$iconDis=0,$currentValue=array(),$cVfullMsg=0) {
+	function generateUpdateDatabaseForm_checkboxes(array $arr,$label,$checked=1,$iconDis=0,$currentValue=array(),$cVfullMsg=0) {
 		$out = array();
 		$tableId = uniqid('table');
 		$templateMarkers = array();
@@ -839,7 +839,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 
 		return $content;
 	}
-	
+
 	/**
 	 * Performs the queries passed from the input array.
 	 *
@@ -847,7 +847,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 * @param	array		Array with keys that must match keys in $arr. Only where a key in this array is set and TRUE will the query be executed (meant to be passed from a form checkbox)
 	 * @return	mixed		Array with error message from database if any occured. Otherwise TRUE if everything was executed successfully.
 	 */
-	function performUpdateQueries($arr, $keyArr) {
+	function performUpdateQueries(array $arr, array $keyArr) {
 		$result = array();
 		if (is_array($arr)) {
 			foreach ($arr as $key => $string) {

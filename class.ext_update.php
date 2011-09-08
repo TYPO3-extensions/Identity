@@ -71,7 +71,7 @@ class ext_update {
 		}
 
 		$statements = $this->getStatements();
-		
+
 		if (!empty($statements['add'])) {
 			$content = $this->renderForm($statements);
 
@@ -85,21 +85,21 @@ class ext_update {
 			$content .= $this->renderMessageTable();
 
 		}
-		
+
 			// Update UUID values
 		$this->identityMap->rebuild();
 		$this->identityMap->commit();
-		
+
 		return $content;
 	}
-	
+
 	/**
 	 * Main function, returning the HTML content of the update wizard
 	 *
 	 * @return	string	HTML to display
 	 */
 	protected function getStatements() {
-		
+
 			// load the SQL files
 		$tblFileContent = t3lib_div::getUrl(PATH_t3lib . 'stddb/tables.sql');
 		foreach ($GLOBALS['TYPO3_LOADED_EXT'] as $loadedExtConf) {
@@ -140,17 +140,20 @@ class ext_update {
 			// get a diff and check if a field uuid is missing somewhere
 		$diff = $this->installer->getDatabaseExtra($tableDefinitions, $FDdb);
 		$statements = $this->installer->getUpdateSuggestions($diff);
-		$statements['add'] = $this->installer->filterByIdentityField($statements['add']);
+		if (isset($statements['add'])) {
+			$statements['add'] = $this->installer->filterByIdentityField($statements['add']);
+		}
+
 		return $statements;
 	}
-	
+
 	/**
 	 * Render message UUID OK
 	 *
 	 * @return	string	HTML to display
 	 */
 	protected function renderMessageOk() {
-		$content .= '
+		$content = '
 			<div style="width: 600px; margin-top: 20px">
 				<div class="typo3-message message-ok">
 					<div class="message-header">
@@ -162,7 +165,7 @@ class ext_update {
 			';
 		return $content;
 	}
-	
+
 	/**
 	 * Render message about missing table
 	 *
@@ -182,15 +185,15 @@ class ext_update {
 			';
 		return $content;
 	}
-	
+
 	/**
-	 * Render the update statement form 
+	 * Render the update statement form
 	 *
 	 * @param array $statements
 	 * @return	string	HTML to display
 	 */
 	protected function renderForm($statements) {
-		
+
 		$content = '
 			<style>
 				fieldset {
