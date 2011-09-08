@@ -26,7 +26,9 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-if (!defined ("TYPO3_MODE"))    die ('Access denied.');
+if (!defined ('TYPO3_MODE')) {
+	die ('Access denied.');
+}
 
 foreach ($GLOBALS['TCA'] as $tablename=>$configuration) {
 	t3lib_div::loadTCA($tablename);

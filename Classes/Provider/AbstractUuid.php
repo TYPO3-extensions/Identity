@@ -69,11 +69,20 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	protected $deleteQueue = array();
 
 	/**
+	 * @var integer
+	 */
+	protected $version;
+
+	/**
 	 * Sets the provider key
 	 * @param string $providerKey
 	 */
 	public function __construct($providerKey) {
 		$this->providerKey = $providerKey;
+
+		$this->version = class_exists('t3lib_utility_VersionNumber')
+				? t3lib_utility_VersionNumber::convertVersionNumberToInteger(TYPO3_version)
+				: t3lib_div::int_from_ver(TYPO3_version);
 	}
 
 	/**
@@ -105,22 +114,18 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	public function validateIdentifier($identifier) {
 		if (!strlen($identifier)) {
 			throw new InvalidArgumentException('Empty UUID given.', 1299013185);
-			return false;
 		}
 		if (function_exists('uuid_is_valid') && !uuid_is_valid($identifier)) {
 			throw new InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013329);
-			return false;
 		}
 		if (strlen($identifier) !== 36) {
 			throw new InvalidArgumentException('Lenghth of UUID has to be 36 characters.', 1299013335);
-			return false;
 		}
 		$pattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
 		if (!preg_match($pattern, $identifier)) {
 			throw new InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013339);
-			return false;
 		}
-		return true;
+		return TRUE;
 	}
 
 	/**
@@ -184,7 +189,12 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 		if (!isset($GLOBALS['TCA'][$tablename])) {
 			throw new InvalidArgumentException('The tablename "' . $tablename . '" is not defined in the TCA.', 1299082184);
 		}
-		if (!t3lib_div::testInt($uid)) {
+		if ($this->version < 4006000) {
+			$invalidUid = !t3lib_div::testInt($uid);
+		} else {
+			$invalidUid = !t3lib_utility_Math::canBeInterpretedAsInteger($uid);
+		}
+		if ($invalidUid) {
 			throw new InvalidArgumentException('The uid "' . $uid . '" is not an integer.', 1299082236);
 		}
 		$row = $this->db->exec_SELECTgetSingleRow(
@@ -279,7 +289,12 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
 		$this->validateIdentifier($uuid);
 		t3lib_div::loadTCA($tablename);
-		if (isset($GLOBALS['TCA'][$tablename]) && t3lib_div::testInt($uid)) {
+		if ($this->version < 4006000) {
+			$validUid = t3lib_div::testInt($uid);
+		} else {
+			$validUid = t3lib_utility_Math::canBeInterpretedAsInteger($uid);
+		}
+		if (isset($GLOBALS['TCA'][$tablename]) && $validUid) {
 			if (isset($this->insertQueue[$uuid])) {
 				unset($this->insertQueue[$uuid]);
 			}

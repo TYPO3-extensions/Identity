@@ -73,7 +73,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 				$statementArray[$statementArrayPointer] .= $lineContent;
 				$is_set = 1;
 			}
-			if (substr(trim($lineContent), -1) == ';') {
+			if (substr(trim($lineContent), -1) === ';') {
 				if (isset($statementArray[$statementArrayPointer])) {
 					if (!trim($statementArray[$statementArrayPointer]) || ($query_regex && !preg_match('/' . $query_regex . '/i', trim($statementArray[$statementArrayPointer])))) {
 						unset($statementArray[$statementArrayPointer]);
@@ -108,7 +108,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 		$total = array();
 
 		foreach ($lines as $value) {
-			if (substr($value, 0, 1) == '#') {
+			if (substr($value, 0, 1) === '#') {
 				continue; // Ignore comments
 			}
 
@@ -116,12 +116,12 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 				$parts = t3lib_div::trimExplode(' ', $value, TRUE);
 				if (strtoupper($parts[0]) === 'CREATE' && strtoupper($parts[1]) === 'TABLE') {
 					$table = str_replace('`', '', $parts[2]);
-					if (TYPO3_OS == 'WIN') { // tablenames are always lowercase on windows!
+					if (TYPO3_OS === 'WIN') { // tablenames are always lowercase on windows!
 						$table = strtolower($table);
 					}
 				}
 			} else {
-				if (substr($value, 0, 1) == ')' && substr($value, -1) == ';') {
+				if (substr($value, 0, 1) === ')' && substr($value, -1) === ';') {
 					$ttype = array();
 					if (preg_match('/(ENGINE|TYPE)[ ]*=[ ]*([a-zA-Z]*)/', $value, $ttype)) {
 						$total[$table]['extra']['ENGINE'] = $ttype[2];
@@ -420,7 +420,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 							if (is_array($info[$theKey])) {
 								foreach ($info[$theKey] as $fieldN => $fieldC) {
 									$fieldN = str_replace('`', '', $fieldN);
-									if ($fieldN == 'COLLATE') {
+									if ($fieldN === 'COLLATE') {
 										continue; // TODO: collation support is currently disabled (needs more testing)
 									}
 
@@ -492,7 +492,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 										$info['extra']['CLEAR'] = 2;
 									}
 								}
-								if ($theKey == 'extra') {
+								if ($theKey === 'extra') {
 									if ($remove) {
 										if (substr($fN, 0, strlen($deletedPrefixKey)) != $deletedPrefixKey) {
 											$statement = 'ALTER TABLE ' . $table . ' CHANGE ' . $fN . ' ' . $deletedPrefixKey . $fN . ' ' . $fV . ';';

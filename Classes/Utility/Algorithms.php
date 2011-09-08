@@ -75,7 +75,7 @@ class Tx_Identity_Utility_Algorithms {
 	 * @throws InvalidArgumentException Throws an invalid argument exception, if the given namespace is not an uuid
 	 */
    static public function generateUUIDv5($namespace, $name) {
-        self::validateUUID($namespace);
+       // self::validateUUID($namespace);
 
         // Get hexadecimal components of namespace
         $nhex = str_replace(array('-','{','}'), '', $namespace);
@@ -125,6 +125,7 @@ class Tx_Identity_Utility_Algorithms {
 	static public function generateRandomBytes($count) {
 		$bytes = '';
 
+			// TODO: use TYPO3's internal API to retrieve random bytes
 		if (file_exists('/dev/urandom')) {
 			$bytes = file_get_contents('/dev/urandom', NULL, NULL, NULL, $count);
 		}

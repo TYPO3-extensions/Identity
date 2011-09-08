@@ -38,6 +38,12 @@ if (t3lib_extMgm::isLoaded('identity')) {
  */
 class ext_update {
 
+	/** @var Tx_Identity_Install_Installer */
+	protected $installer;
+
+	/** @var Tx_Identity_Map */
+	protected $identityMap;
+
 	/**
 	 * Defines whether the UPDATE! menu should be displayed or not.
 	 *
@@ -54,7 +60,6 @@ class ext_update {
 	public function __construct() {
 		if (t3lib_extMgm::isLoaded('identity')) {
 				// instantiate a light installer
-				/* @var $this->installer Tx_Identity_Install_Installer */
 			$this->installer = t3lib_div::makeInstance('Tx_Identity_Install_Installer');
 			$this->identityMap = t3lib_div::makeInstance('Tx_Identity_Map');
 		}
@@ -77,7 +82,7 @@ class ext_update {
 
 		}
 		else {
-			$content .= $this->renderMessageOk();
+			$content = $this->renderMessageOk();
 		}
 
 			// display a notification also if missing table are found
@@ -114,6 +119,7 @@ class ext_update {
 
 			// get the table definitions
 		$tableDefinitions = $this->installer->getFieldDefinitions_fileContent($fileContent);
+		/** @var $fieldDefinitionsUtility Tx_Identity_Utility_FieldDefinitions */
 		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
 		$tableDefinitions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefinitions);
 		if (!count($tableDefinitions)) {
@@ -121,7 +127,7 @@ class ext_update {
 		}
 
 			// Execute the statement if button submit has been pressed
-		if (t3lib_div::_GP('update') == 'doUpdate') {
+		if (t3lib_div::_GP('update') === 'doUpdate') {
 
 			$parameters = t3lib_div::_GP('TYPO3_INSTALL');
 			if (is_array($parameters['database_update'])) {
@@ -172,7 +178,7 @@ class ext_update {
 	 * @return	string	HTML to display
 	 */
 	protected function renderMessageTable() {
-		$content .= '
+		$content = '
 			<div style="width: 600px; margin-top: 20px">
 				<div class="typo3-message message-information">
 					<div class="message-header">'
@@ -212,7 +218,6 @@ class ext_update {
 				.t3-install-form-label-after label {
 					padding-left: 1em;
 				}
-				genera...1016810 (line 117)
 				.t3-install-form-label-after label, .t3-install-form-label-above label {
 					display: block;
 					float: none;
@@ -240,7 +245,7 @@ class ext_update {
 	}
 }
 
-if (defined('TYPO3_MODE') && $TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/identity/class.ext_update.php']) {
-	include_once($TYPO3_CONF_VARS[TYPO3_MODE]['XCLASS']['ext/identity/class.ext_update.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/identity/class.ext_update.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/identity/class.ext_update.php']);
 }
 ?>
