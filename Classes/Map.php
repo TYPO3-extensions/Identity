@@ -134,7 +134,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 				}
 			}
 		} else {
-			throw new Exception('TCA is not available at the moment.', 1300109740);
+			throw new RuntimeException('TCA is not available at the moment.', 1300109740);
 		}
 	}
 
