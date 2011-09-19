@@ -114,7 +114,12 @@ class Tx_Identity_Utility_FieldDefinitions {
 	protected function getIdentityFieldDefintions(array $tableDefinitions) {
 		$identityFieldDefintions = array();
 
+		/** @var $identityConfigurationCheck Tx_Identity_Configuration_Check */
 		$identityConfigurationCheck = t3lib_div::makeInstance('Tx_Identity_Configuration_Check');
+
+		/** @var $identityMap Tx_Identity_Map */
+		$identityMap = t3lib_div::makeInstance('Tx_Identity_Map');
+
 		$identityConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'];
 		$identityProviders = $identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST];
 
@@ -127,13 +132,7 @@ class Tx_Identity_Utility_FieldDefinitions {
 						$this->ignoreTCA
 						&& in_array('uid', array_keys($definition['fields']))
 						&& in_array('pid', array_keys($definition['fields']))
-						&& (
-								t3lib_div::isFirstPartOfStr($table, 'tx_')
-								|| t3lib_div::isFirstPartOfStr($table, 'tt_')
-								|| t3lib_div::isFirstPartOfStr($table, 'static_')
-								|| $table == 'pages'
-								|| $table == 'tt_content'
-							)
+						&& $identityMap->isApplicable($table)
 				)
 			) {
 
