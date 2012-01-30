@@ -60,7 +60,6 @@ class Tx_Identity_Utility_FieldDefinitions {
 		return $this->ignoreTCA;
 	}
 
-
 	/**
 	 * Check if a table definition contains an uid and a pid, and insert a uuid column
 	 * Returns a modified table definition
@@ -71,12 +70,12 @@ class Tx_Identity_Utility_FieldDefinitions {
 	public function insertIdentityColumn(array $tableDefinitions) {
 		$identityFieldDefinitions = $this->getIdentityFieldDefintions($tableDefinitions);
 		foreach ($identityFieldDefinitions as $table => $defintion) {
-				foreach ($defintion['fields'] as $fieldName => $createString) {
-					$tableDefinitions[$table]['fields'][$fieldName] = $createString;
-				}
-				foreach ($defintion['keys'] as $keyName => $createString) {
-					$tableDefinitions[$table]['keys'][$keyName] = $createString;
-				}
+			foreach ($defintion['fields'] as $fieldName => $createString) {
+				$tableDefinitions[$table]['fields'][$fieldName] = $createString;
+			}
+			foreach ($defintion['keys'] as $keyName => $createString) {
+				$tableDefinitions[$table]['keys'][$keyName] = $createString;
+			}
 		}
 		return $tableDefinitions;
 	}
@@ -92,13 +91,13 @@ class Tx_Identity_Utility_FieldDefinitions {
 		$sqlContent = LF . LF . LF;
 		$identityFieldDefinitions = $this->getIdentityFieldDefintions($tableDefinitions);
 		foreach ($identityFieldDefinitions as $table => $defintion) {
-				$sqlRows = array();
-				foreach ($defintion['fields'] as $fieldName => $createString) {
-					$sqlRows[] = TAB . $fieldName . ' ' . $createString;
-				}
-				foreach ($defintion['keys'] as $createString) {
-					$sqlRows[] = TAB . $createString;
-				}
+			$sqlRows = array();
+			foreach ($defintion['fields'] as $fieldName => $createString) {
+				$sqlRows[] = TAB . $fieldName . ' ' . $createString;
+			}
+			foreach ($defintion['keys'] as $createString) {
+				$sqlRows[] = TAB . $createString;
+			}
 			$sqlContent .= 'CREATE TABLE ' . $table . ' (' . LF;
 			$sqlContent .= implode(',' . LF, $sqlRows). LF;
 			$sqlContent .= ');'  . LF . LF . LF;
@@ -113,73 +112,55 @@ class Tx_Identity_Utility_FieldDefinitions {
 	 */
 	protected function getIdentityFieldDefintions(array $tableDefinitions) {
 		$identityFieldDefintions = array();
-
 		/** @var $identityConfigurationCheck Tx_Identity_Configuration_Check */
 		$identityConfigurationCheck = t3lib_div::makeInstance('Tx_Identity_Configuration_Check');
-
 		/** @var $identityMap Tx_Identity_Map */
 		$identityMap = t3lib_div::makeInstance('Tx_Identity_Map');
-
 		$identityConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'];
 		$identityProviders = $identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST];
-
 		foreach ($tableDefinitions as $table => $definition) {
 			t3lib_div::loadTCA($table);
-
 			if (
 				isset($GLOBALS['TCA'][$table])
+				|| $identityMap->isApplicable($table)
 				|| (
-						$this->ignoreTCA
-						&& in_array('uid', array_keys($definition['fields']))
-						&& in_array('pid', array_keys($definition['fields']))
-						&& $identityMap->isApplicable($table)
+					// During installation of an extension, the extensions tca is not available
+					// In this case ignoreTCA is set and we look only for a uid and pid column.
+					// If this isn't right, it gets corrected afterwards anyways.
+					$this->ignoreTCA
+					&& in_array('uid', array_keys($definition['fields']))
+					&& in_array('pid', array_keys($definition['fields']))
 				)
 			) {
-
 				if (isset($GLOBALS['TCA'][$table]['ctrl']['EXT']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::KEY])) {
-
 					$identityProviderKey = $GLOBALS['TCA'][$table]['ctrl']['EXT']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::KEY];
 					$identityProviderField = $identityProviders[$identityProviderKey][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
 					$identityConfigurationCheck->checkTableSpecificIdentityProviderConfiguration($table, $identityProviderKey);
-
 				} elseif (isset($identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER])) {
-
 					$identityProviderKey = $identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER];
 					$identityProviderField = $identityProviders[$identityProviderKey][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
 					$identityConfigurationCheck->checkDefaultIdentityProviderConfiguration($identityProviderKey);
-
 				} else {
-
-					throw InvalidArgumentException(
+					throw new InvalidArgumentException(
 						'There is no default identity provider defined in ' .
 						'$GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'identity\'][Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER]',
 						1300104461
 					);
-
 				}
-
 				// Adds field + index definition
 				$identityFieldDefintions[$table]['fields'][$identityProviderField] = $identityProviders[$identityProviderKey][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE];
 				$identityFieldDefintions[$table]['keys'][$identityProviderField] = 'KEY ' . $identityProviderField . ' (' . $identityProviderField . ')';
-
 			} elseif ($table === 'sys_identity') {
-
 				foreach ($identityProviders as $identityProviderKey=>$identityProviderConfiguration) {
-
 					$identityConfigurationCheck->checkIdentityProviderConfiguration($identityProviderKey);
 					$identityField = $identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
 					$identityFieldCreateClause = $identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE];
-
 					// Adds field + index definition
 					$identityFieldDefintions[$table]['fields'][$identityField] = $identityFieldCreateClause;
 					$identityFieldDefintions[$table]['keys'][$identityField] = 'KEY ' . $identityField . ' (' . $identityField . ')';
-
 				}
-
 			}
-
 		}
-
 		return $identityFieldDefintions;
 	}
 

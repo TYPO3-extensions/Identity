@@ -51,6 +51,11 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	protected $configuration = array();
 
 	/**
+	 * @var array
+	 */
+	protected $isApplicableCache = array();
+
+	/**
 	 * @var t3lib_DB
 	 */
 	protected $db;
@@ -133,6 +138,32 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 			throw new InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013339);
 		}
 		return TRUE;
+	}
+
+	/**
+	 * @param string $tablename
+	 * @return bool
+	 */
+	public function isApplicable($tablename) {
+		if (isset($this->isApplicableCache[$tablename])) {
+			return $this->isApplicableCache[$tablename];
+		}
+		if (isset($GLOBALS['TCA']) && is_array($GLOBALS['TCA']) && in_array($tablename, array_keys($GLOBALS['TCA']))) {
+			$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+			if ($identityField) {
+				// It is necessary to check if the table contains the identity field.
+				// During the installation of ext:identity there could occur sql errors until the
+				// extension manager/install tool hook kicks in and the tables are supplied with the identifier field.
+				$fields = $this->db->admin_get_fields($tablename);
+				$fieldNames = array_keys($fields);
+				if ($fields && in_array($identityField, $fieldNames)) {
+					$this->isApplicableCache[$tablename] = TRUE;
+					return $this->isApplicableCache[$tablename];
+				}
+			}
+		}
+		$this->isApplicableCache[$tablename] = FALSE;
+		return $this->isApplicableCache[$tablename];
 	}
 
 	/**
@@ -439,9 +470,9 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 				foreach ($this->deleteQueue as $deletableEntries) {
 					$this->db->exec_DELETEquery(
 						$this->identityTable,
-							$identityField . ' = ' . $this->db->fullQuoteStr($deletableEntries[$identityField], $this->identityTable)
-							. ' OR ( foreign_tablename = ' . $this->db->fullQuoteStr($deletableEntries['tablename'], $this->identityTable) . ' AND '
-							. ' foreign_uid = ' . $this->db->fullQuoteStr($deletableEntries['uid'], $this->identityTable) . ')'
+						$identityField . ' = ' . $this->db->fullQuoteStr($deletableEntries[$identityField], $this->identityTable)
+						. ' OR ( foreign_tablename = ' . $this->db->fullQuoteStr($deletableEntries['tablename'], $this->identityTable) . ' AND '
+						. ' foreign_uid = ' . $this->db->fullQuoteStr($deletableEntries['uid'], $this->identityTable) . ')'
 					);
 				}
 			}

@@ -46,6 +46,14 @@ interface Tx_Identity_ProviderInterface {
 	public function validateIdentifier($identifier);
 
 	/**
+	 * Checks if this provider is applicable to the table
+	 *
+	 * @param string $tablename
+	 * @return bool
+	 */
+	public function isApplicable($tablename);
+
+	/**
 	 * Returns a unique identifier for a resource location
 	 *
 	 * @param string $tablename

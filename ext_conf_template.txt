@@ -1,2 +1,2 @@
-# cat=basic/dev/1000; type=user[EXT:identity/Classes/Utility/ExtensionManager.php:Tx_Identity_Utility_ExtensionManager->displayMessage]; label=LLL:EXT:identity/Resources/Private/Language/locallang.xml:itest
+# cat=basic/dev/1000; type=user[EXT:identity/Classes/Utility/ExtensionManager.php:Tx_Identity_Utility_ExtensionManager->displayMessage]; label=Message
 updateMessage=0

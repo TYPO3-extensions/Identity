@@ -92,11 +92,10 @@ class Tx_Identity_Utility_ExtensionManager {
 				$tblFileContent .= LF . LF . LF . LF . t3lib_div::getUrl($loadedExtConf['ext_tables.sql']);
 			}
 		}
-		$fileContent = implode(
-				LF, $installer->getStatementArray($tblFileContent, 1, '^CREATE TABLE ')
-		);
+		$fileContent = implode(LF, $installer->getStatementArray($tblFileContent, 1, '^CREATE TABLE '));
 		// get the table definitions
 		$tableDefinitions = $installer->getFieldDefinitions_fileContent($fileContent);
+		/** @var $fieldDefinitionsUtility Tx_Identity_Utility_FieldDefinitions */
 		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
 		$tableDefinitions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefinitions);
 		if (!count($tableDefinitions)) {
@@ -107,8 +106,11 @@ class Tx_Identity_Utility_ExtensionManager {
 		// get a diff and check if a field uuid is missing somewhere
 		$diff = $installer->getDatabaseExtra($tableDefinitions, $FDdb);
 		$update_statements = $installer->getUpdateSuggestions($diff);
+		if (empty($update_statements)) {
+			return FALSE;
+		}
 		$update_statements['add'] = $installer->filterByIdentityField($update_statements['add']);
-		return ! empty($update_statements['add']);
+		return !empty($update_statements['add']);
 	}
 
 	/**

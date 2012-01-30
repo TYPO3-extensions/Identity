@@ -168,7 +168,6 @@ class Tx_Identity_Map implements t3lib_Singleton {
 		if (!$this->isApplicable($tablename)) {
 			return NULL;
 		}
-		$this->initializeObject();
 		if (isset($this->tableSpecificIdentityProviders[$tablename])) {
 			// Look for a more specific identity provider first
 			return $this->tableSpecificIdentityProviders[$tablename]['provider']->getIdentifierForResourceLocation($tablename, $uid);
@@ -188,7 +187,6 @@ class Tx_Identity_Map implements t3lib_Singleton {
 		if (!$this->isApplicable($tablename)) {
 			return NULL;
 		}
-		$this->initializeObject();
 		if (isset($this->tableSpecificIdentityProviders[$tablename])) {
 			return $this->tableSpecificIdentityProviders[$tablename]['provider']->getIdentifierForNewResourceLocation($tablename);
 		} else {
@@ -227,10 +225,14 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * @return bool
 	 */
 	public function isApplicable($tablename) {
-		return t3lib_div::isFirstPartOfStr($tablename, 'tt_')
-			|| t3lib_div::isFirstPartOfStr($tablename, 'tx_')
-			|| t3lib_div::isFirstPartOfStr($tablename, 'static_')
-			|| $tablename === 'pages';
+		$this->initializeObject();
+		if (isset($this->tableSpecificIdentityProviders[$tablename])) {
+			// Look for a more specific identity provider first
+			return $this->tableSpecificIdentityProviders[$tablename]['provider']->isApplicable($tablename);
+		} else {
+			// else take the default provider
+			return $this->defaultIdentityProvider['provider']->isApplicable($tablename);
+		}
 	}
 
 	/**

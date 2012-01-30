@@ -73,7 +73,13 @@ class tx_identity_em_hook implements tx_em_Index_CheckDatabaseUpdatesHook, Tx_In
 	 * @return string
 	 */
 	public function appendTableDefinitions($extKey, array $extInfo, $fileContent, t3lib_install $instObj, t3lib_install_Sql $instSqlObj, tx_em_Install $parent) {
-		$fieldDefinitions = $instSqlObj->getFieldDefinitions_fileContent($fileContent);
+		if ($extKey === 'identity') {
+			// Proceed over all TCA tables if in ext:identity database update dialog
+			$fieldDefinitions = $GLOBALS['TCA'];
+			$fieldDefinitions['sys_identity'] = Array();
+		} else {
+			$fieldDefinitions = $instSqlObj->getFieldDefinitions_fileContent($fileContent);
+		}
 		/** @var Tx_Identity_Utility_FieldDefinitions $fieldDefinitionsUtility */
 		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
 		// Ignore TCA upon extension installation, things get corrected afterwards if tca is available

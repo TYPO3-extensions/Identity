@@ -42,7 +42,6 @@ class Tx_Identity_Provider_StaticRecordUuid extends Tx_Identity_Provider_Abstrac
 		$this->insertMissingUUIDs();
 	}
 
-
 	/**
 	 * Walks through all tables and inserts an uuid to a record that has any
 	 */
