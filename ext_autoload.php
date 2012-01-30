@@ -5,8 +5,8 @@
  * $Id: $
  */
 return array(
-	't3lib_db_preprocessqueryhook'	=> t3lib_extMgm::extPath('identity', 'Classes/Compat/interface.t3lib_db_preprocessqueryhook.php'),
-	't3lib_db_postprocessqueryhook'	=> t3lib_extMgm::extPath('identity', 'Classes/Compat/interface.t3lib_db_postprocessqueryhook.php'),
+	't3lib_db_preprocessqueryhook' => PATH_t3lib . 'interfaces/interface.t3lib_db_preprocessqueryhook.php',
+	't3lib_db_postprocessqueryhook' => PATH_t3lib . 'interfaces/interface.t3lib_db_postprocessqueryhook.php',
 	'tx_identity_map' =>  t3lib_extMgm::extPath('identity', 'Classes/Map.php'),
 	'tx_identity_configuration_check' => t3lib_extMgm::extPath('identity', 'Classes/Configuration/Check.php'),
 	'tx_identity_configuration_identityproviderinterface' => t3lib_extMgm::extPath('identity', 'Classes/Configuration/IdentityProviderInterface.php'),

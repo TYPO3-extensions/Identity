@@ -36,4 +36,5 @@ foreach ($GLOBALS['TCA'] as $tablename=>$configuration) {
 		$GLOBALS['TCA'][$tablename]['ctrl']['EXT']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::KEY] = 'staticRecordUuid';
 	}
 }
+
 ?>

@@ -27,10 +27,13 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
- /**
+/**
  * A utility class for various algorithms.
  *
- * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
+ * @author Thomas Maroschik <tmaroschik@dfau.de>
+ *
+ * @package TYPO3
+ * @subpackage identity
  */
 class Tx_Identity_Utility_Algorithms {
 
@@ -41,14 +44,18 @@ class Tx_Identity_Utility_Algorithms {
 	 * The algorithm used here, might not be completely random.
 	 *
 	 * @return string The universally unique id
-	 * @author Unkown
+	 * @author Unknown
 	 */
 	static public function generateUUID() {
-		return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-			mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ),
-			mt_rand( 0, 0x0fff ) | 0x4000,
-			mt_rand( 0, 0x3fff ) | 0x8000,
-			mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ) );
+		return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+			mt_rand(0, 0xffff),
+			mt_rand(0, 0xffff),
+			mt_rand(0, 0xffff),
+			mt_rand(0, 0x0fff) | 0x4000,
+			mt_rand(0, 0x3fff) | 0x8000,
+			mt_rand(0, 0xffff),
+			mt_rand(0, 0xffff),
+			mt_rand(0, 0xffff));
 	}
 
 	/**
@@ -74,73 +81,34 @@ class Tx_Identity_Utility_Algorithms {
 	 * @return string The unversally unique id
 	 * @throws InvalidArgumentException Throws an invalid argument exception, if the given namespace is not an uuid
 	 */
-   static public function generateUUIDv5($namespace, $name) {
-       // self::validateUUID($namespace);
-
-        // Get hexadecimal components of namespace
-        $nhex = str_replace(array('-','{','}'), '', $namespace);
-
-        // Binary Value
-        $nstr = '';
-
-        // Convert Namespace UUID to bits
-        for($i = 0;
-        $i < strlen($nhex);
-        $i+=2) {
-            $nstr .= chr(hexdec($nhex[$i].$nhex[$i+1]));
-        }
-
-        // Calculate hash value
-        $hash = sha1($nstr . $name);
-
-        return sprintf('%08s-%04s-%04x-%04x-%12s',
-
-                // 32 bits for "time_low"
-                substr($hash, 0, 8),
-
-                // 16 bits for "time_mid"
-                substr($hash, 8, 4),
-
-                // 16 bits for "time_hi_and_version",
-                // four most significant bits holds version number 5
-                (hexdec(substr($hash, 12, 4)) & 0x0fff) | 0x5000,
-
-                // 16 bits, 8 bits for "clk_seq_hi_res",
-                // 8 bits for "clk_seq_low",
-                // two most significant bits holds zero and one for variant DCE1.1
-                (hexdec(substr($hash, 16, 4)) & 0x3fff) | 0x8000,
-
-                // 48 bits for "node"
-                substr($hash, 20, 12)
-        );
-    }
-
-	/**
-	 * Returns a string of random bytes.
-	 *
-	 * @param integer $count Number of bytes to generate
-	 * @return string
-	 * @author Karsten Dambekalns <karsten@typo3.org>
-	 */
-	static public function generateRandomBytes($count) {
-		$bytes = '';
-
-			// TODO: use TYPO3's internal API to retrieve random bytes
-		if (file_exists('/dev/urandom')) {
-			$bytes = file_get_contents('/dev/urandom', NULL, NULL, NULL, $count);
+	static public function generateUUIDv5($namespace, $name) {
+		// Get hexadecimal components of namespace
+		$nhex = str_replace(array('-', '{', '}'), '', $namespace);
+		// Binary Value
+		$nstr = '';
+		// Convert Namespace UUID to bits
+		for ($i = 0;
+			 $i < strlen($nhex);
+			 $i += 2) {
+			$nstr .= chr(hexdec($nhex[$i] . $nhex[$i + 1]));
 		}
-
-			// urandom did not deliver (enough) data
-		if (strlen($bytes) < $count) {
-			$randomState = microtime() . getmypid();
-			while (strlen($bytes) < $count) {
-				$randomState = md5(microtime() . mt_rand() . $randomState);
-				$bytes .= md5(mt_rand() . $randomState, TRUE);
-			}
-			$bytes = substr($bytes, -$count, $count);
-		}
-		return $bytes;
+		// Calculate hash value
+		$hash = sha1($nstr . $name);
+		return sprintf('%08s-%04s-%04x-%04x-%12s',
+			// 32 bits for "time_low"
+			substr($hash, 0, 8),
+			// 16 bits for "time_mid"
+			substr($hash, 8, 4),
+			// 16 bits for "time_hi_and_version",
+			// four most significant bits holds version number 5
+				(hexdec(substr($hash, 12, 4)) & 0x0fff) | 0x5000,
+			// 16 bits, 8 bits for "clk_seq_hi_res",
+			// 8 bits for "clk_seq_low",
+			// two most significant bits holds zero and one for variant DCE1.1
+				(hexdec(substr($hash, 16, 4)) & 0x3fff) | 0x8000,
+			// 48 bits for "node"
+			substr($hash, 20, 12)
+		);
 	}
 
 }
-?>

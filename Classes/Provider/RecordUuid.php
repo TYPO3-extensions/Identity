@@ -25,9 +25,14 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
-
+/**
+ * This class is the concrete implementation of the abstract uuid class for all non static records
+ *
+ * @author Thomas Maroschik <tmaroschik@dfau.de>
+ *
+ * @package TYPO3
+ * @subpackage identity
+ */
 class Tx_Identity_Provider_RecordUuid extends Tx_Identity_Provider_AbstractUuid {
 
 }
-
-?>

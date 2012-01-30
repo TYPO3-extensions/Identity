@@ -25,7 +25,14 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
-
+/**
+ * This class is the concrete implementation of the abstract uuid class for all static records
+ *
+ * @author Thomas Maroschik <tmaroschik@dfau.de>
+ *
+ * @package TYPO3
+ * @subpackage identity
+ */
 class Tx_Identity_Provider_StaticRecordUuid extends Tx_Identity_Provider_AbstractUuid {
 
 	/**
@@ -52,12 +59,10 @@ class Tx_Identity_Provider_StaticRecordUuid extends Tx_Identity_Provider_Abstrac
 						 'foreign_tablename' => $tablename,
 						 'foreign_uid' => $row['uid']
 					);
-					$this->addToCache($uuid, $tablename, $uid);
+					$this->addToCache($uuid, $tablename, $row['uid']);
 				}
 			}
 		}
 	}
 
 }
-
-?>

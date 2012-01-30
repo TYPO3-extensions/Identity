@@ -113,11 +113,9 @@ class tx_identity_em_hook implements tx_em_Index_CheckDatabaseUpdatesHook, Tx_In
 		// Do nothing here as we don't need to
 		return;
 	}
-}
 
+}
 
 if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/identity/Classes/Hooks/class.tx_identity_em_hook.php'])) {
 	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['ext/identity/Classes/Hooks/class.tx_identity_em_hook.php']);
 }
-
-?>

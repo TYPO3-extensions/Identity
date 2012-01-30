@@ -29,6 +29,11 @@
  *
  * This is the base of the identity extension.
  * @api
+ *
+ * @author Thomas Maroschik <tmaroschik@dfau.de>
+ *
+ * @package TYPO3
+ * @subpackage identity
  */
 class Tx_Identity_Map implements t3lib_Singleton {
 
@@ -69,18 +74,19 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * Initialize all defined identity providers
 	 */
 	protected function initializeIdentityProviders() {
+		/** @var $identityConfigurationCheck Tx_Identity_Configuration_Check */
 		$identityConfigurationCheck = t3lib_div::makeInstance('Tx_Identity_Configuration_Check');
 		$identityConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'];
 		$identityProviders = $identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST];
-
 		foreach ($identityProviders as $identityProviderKey=>$identityProviderConfiguration) {
 			$identityConfigurationCheck->checkIdentityProviderConfiguration($identityProviderKey);
+			/** @var $identityProvider Tx_Identity_ProviderInterface */
 			$identityProvider = t3lib_div::makeInstance($identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS], $identityProviderKey);
 			if (!$identityProvider) {
-				throw InvalidArgumentException('The provider class "' . $identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS] . '" could not be loaded.', 1300109265);
+				throw new InvalidArgumentException('The provider class "' . $identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS] . '" could not be loaded.', 1300109265);
 			}
 			if (!$identityProvider instanceof Tx_Identity_ProviderInterface) {
-				throw InvalidDataType('The provider class "' . $identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS] . '" does not implement the "Tx_Identity_ProviderInterface".' , 1300110062);
+				throw new InvalidDataType('The provider class "' . $identityProviderConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS] . '" does not implement the "Tx_Identity_ProviderInterface".' , 1300110062);
 			}
 			if (method_exists($identityProvider, 'injectDb')) {
 				$identityProvider->injectDb($GLOBALS['TYPO3_DB']);
@@ -100,15 +106,14 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 */
 	protected function initializeDefaultIdentityProvider() {
 		$identityConfigurationCheck = t3lib_div::makeInstance('Tx_Identity_Configuration_Check');
-
+		/** @var $identityConfigurationCheck Tx_Identity_Configuration_Check */
 		if (!isset($GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER])) {
-			throw InvalidArgumentException(
+			throw new InvalidArgumentException(
 				'There is no default identity provider defined in ' .
 				'$GLOBALS[\'TYPO3_CONF_VARS\'][\'EXTCONF\'][\'identity\'][Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER]',
 				1300104461
 			);
 		}
-
 		$defaultProviderKey = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER];
 		$identityConfigurationCheck->checkDefaultIdentityProviderConfiguration($defaultProviderKey);
 		$this->defaultIdentityProvider = $this->identityProviders[$defaultProviderKey];
@@ -118,18 +123,14 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * Initialize the table specific providers
 	 */
 	protected function initializeTableSpecificIdentityProviders() {
+		/** @var $identityConfigurationCheck Tx_Identity_Configuration_Check */
 		$identityConfigurationCheck = t3lib_div::makeInstance('Tx_Identity_Configuration_Check');
-
 		if (isset($GLOBALS['TCA'])) {
 			foreach ($GLOBALS['TCA'] as $table=>$configuration) {
 				t3lib_div::loadTCA($table);
-				$configuration = $GLOBALS['TCA'][$table];
-
 				if (isset($GLOBALS['TCA'][$table]['ctrl']['EXT']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::KEY])) {
-
 					$identityProviderKey = $GLOBALS['TCA'][$table]['ctrl']['EXT']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::KEY];;
 					$identityConfigurationCheck->checkTableSpecificIdentityProviderConfiguration($table, $identityProviderKey);
-
 					$this->tableSpecificIdentityProviders[$table] = $this->identityProviders[$identityProviderKey];
 				}
 			}
@@ -142,6 +143,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * Returns the identifier field for a resource location
 	 *
 	 * @param string $tablename
+	 * @return string
 	 */
 	public function getIdentifierFieldForResourceLocation($tablename) {
 		$this->initializeObject();
@@ -164,7 +166,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 */
 	public function getIdentifierForResourceLocation($tablename, $uid) {
 		if (!$this->isApplicable($tablename)) {
-			return;
+			return NULL;
 		}
 		$this->initializeObject();
 		if (isset($this->tableSpecificIdentityProviders[$tablename])) {
@@ -180,11 +182,11 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	 * Requests a new identifier for a resource location
 	 *
 	 * @param string $tablename
-	 * @return void
+	 * @return mixed
 	 */
 	public function getIdentifierForNewResourceLocation($tablename) {
 		if (!$this->isApplicable($tablename)) {
-			return;
+			return NULL;
 		}
 		$this->initializeObject();
 		if (isset($this->tableSpecificIdentityProviders[$tablename])) {
@@ -231,7 +233,6 @@ class Tx_Identity_Map implements t3lib_Singleton {
 			|| $tablename === 'pages';
 	}
 
-
 	/**
 	 * Give all providers the chance to perform some kind of rebuild
 	 * @api
@@ -260,9 +261,6 @@ class Tx_Identity_Map implements t3lib_Singleton {
 
 }
 
-
 if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['EXT:uuid/Class/Registry.php'])) {
 	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['EXT:uuid/Class/Registry.php']);
 }
-
-?>

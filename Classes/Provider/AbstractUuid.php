@@ -25,7 +25,14 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
-
+/**
+ * This class is the abstract implementation for a uuid identity provide
+ *
+ * @author Thomas Maroschik <tmaroschik@dfau.de>
+ *
+ * @package TYPO3
+ * @subpackage identity
+ */
 class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface {
 
 	/**
@@ -81,8 +88,8 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 		$this->providerKey = $providerKey;
 
 		$this->version = class_exists('t3lib_utility_VersionNumber')
-				? t3lib_utility_VersionNumber::convertVersionNumberToInteger(TYPO3_version)
-				: t3lib_div::int_from_ver(TYPO3_version);
+			? t3lib_utility_VersionNumber::convertVersionNumberToInteger(TYPO3_version)
+			: t3lib_div::int_from_ver(TYPO3_version);
 	}
 
 	/**
@@ -441,7 +448,4 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 		}
 	}
 
-
 }
-
-?>

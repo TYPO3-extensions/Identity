@@ -26,6 +26,15 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+/**
+ * An interface that supports the configuration of ext:identity by delivering some
+ * constants, that can be used in configuration arrays as keys.
+ *
+ * @author Thomas Maroschik <tmaroschik@dfau.de>
+ *
+ * @package TYPO3
+ * @subpackage identity
+ */
 interface Tx_Identity_Configuration_IdentityProviderInterface {
 
 	const KEY							= 'identityProvider';
@@ -34,6 +43,5 @@ interface Tx_Identity_Configuration_IdentityProviderInterface {
 	const IDENTITY_FIELD				= 'identityField';
 	const IDENTITY_FIELD_CREATE_CLAUSE	= 'identityFieldCreateClause';
 	const PROVIDER_CLASS				= 'providerClass';
-}
 
-?>
+}

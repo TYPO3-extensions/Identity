@@ -22,19 +22,16 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  * ************************************************************* */
-
 if (t3lib_extMgm::isLoaded('identity')) {
 	require_once(t3lib_extMgm::extPath('identity') . 'Classes/Install/Installer.php');
 }
-
 /**
  * Class for updating identity
  *
- * @author		Fabien Udriot <fabien.udriot@ecodev.ch>
- * @package		TYPO3
- * @subpackage	tx_templatedisplay
+ * @author Fabien Udriot <fabien.udriot@ecodev.ch>
  *
- * $Id: class.ext_update.php 567 2010-12-28 16:22:01Z fudriot $
+ * @package TYPO3
+ * @subpackage identity
  */
 class ext_update {
 

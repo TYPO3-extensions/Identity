@@ -25,7 +25,12 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 /**
- * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License, version 3 or later
+ * This class is responsible for the update message in extension manager.
+ *
+ * @author Fabien Udriot <fabien.udriot@ecodev.ch>
+ *
+ * @package TYPO3
+ * @subpackage identity
  */
 class Tx_Identity_Utility_ExtensionManager {
 
@@ -36,7 +41,6 @@ class Tx_Identity_Utility_ExtensionManager {
 	 */
 	public function displayMessage(&$params, &$tsObj) {
 		$out = '';
-
 		if ($this->needsUpdate()) {
 			$out .= '
 			<div style="">
@@ -54,7 +58,6 @@ class Tx_Identity_Utility_ExtensionManager {
 				</div>
 			</div>
 			';
-
 		}
 		else {
 			$out .= '
@@ -70,69 +73,57 @@ class Tx_Identity_Utility_ExtensionManager {
 			</div>
 			';
 		}
-
 		return $out;
 	}
-	
+
 	/**
 	 * Check the database and tells whether it needs update
 	 *
 	 * @return boolean
 	 */
 	protected function needsUpdate() {
-		
-			// instantiate a light installer
-			/* @var $installer Tx_Identity_Install_Installer */
+		// instantiate a light installer
+		/* @var $installer Tx_Identity_Install_Installer */
 		$installer = t3lib_div::makeInstance('Tx_Identity_Install_Installer');
-
-			// load the SQL files
+		// load the SQL files
 		$tblFileContent = t3lib_div::getUrl(PATH_t3lib . 'stddb/tables.sql');
 		foreach ($GLOBALS['TYPO3_LOADED_EXT'] as $loadedExtConf) {
 			if (is_array($loadedExtConf) && $loadedExtConf['ext_tables.sql']) {
 				$tblFileContent .= LF . LF . LF . LF . t3lib_div::getUrl($loadedExtConf['ext_tables.sql']);
 			}
 		}
-
-
 		$fileContent = implode(
 				LF, $installer->getStatementArray($tblFileContent, 1, '^CREATE TABLE ')
 		);
-
-			// get the table definitions
+		// get the table definitions
 		$tableDefinitions = $installer->getFieldDefinitions_fileContent($fileContent);
 		$fieldDefinitionsUtility = t3lib_div::makeInstance('Tx_Identity_Utility_FieldDefinitions');
 		$tableDefinitions = $fieldDefinitionsUtility->insertIdentityColumn($tableDefinitions);
 		if (!count($tableDefinitions)) {
 			die("Error: There were no 'CREATE TABLE' definitions in the provided file");
 		}
-
-			// get the current database definition
+		// get the current database definition
 		$FDdb = $installer->getFieldDefinitions_database();
-
-			// get a diff and check if a field uuid is missing somewhere
+		// get a diff and check if a field uuid is missing somewhere
 		$diff = $installer->getDatabaseExtra($tableDefinitions, $FDdb);
 		$update_statements = $installer->getUpdateSuggestions($diff);
 		$update_statements['add'] = $installer->filterByIdentityField($update_statements['add']);
-
 		return ! empty($update_statements['add']);
 	}
-	
+
 	/**
 	 * Remove statements that contains not a uuid statement
 	 *
 	 * @return boolean
 	 */
 	protected function cleanUp($statements) {
-		
 		$result = array();
 		foreach ($statements as $key => $statement) {
 			if (strpos($statement, 'ADD uuid ') !== FALSE) {
 				$result[$key] = $statement;
 			}
 		}
-		
 		return $result;
 	}
-}
 
-?>
+}

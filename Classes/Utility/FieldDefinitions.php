@@ -182,5 +182,5 @@ class Tx_Identity_Utility_FieldDefinitions {
 
 		return $identityFieldDefintions;
 	}
+
 }
-?>

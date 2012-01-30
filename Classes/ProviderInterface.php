@@ -25,7 +25,10 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
-
+/**
+ * This interface has to be implemented by every identity provider
+ * @api
+ */
 interface Tx_Identity_ProviderInterface {
 
 	/**
@@ -66,6 +69,5 @@ interface Tx_Identity_ProviderInterface {
 	 * @return array [tablename, uid] the resource location
 	 */
 	public function getResourceLocationForIdentifier($identifier);
-}
 
-?>
+}

@@ -25,9 +25,14 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+
 /**
- *
  * This Class groups together useful methods stolen from the Installer
+ *
+ * @author Fabien Udriot <fabien.udriot@ecodev.ch>
+ *
+ * @package TYPO3
+ * @subpackage identity
  */
 class Tx_Identity_Install_Installer implements t3lib_Singleton {
 
@@ -45,7 +50,6 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 */
 	protected $deletedPrefixKey = 'zzz_deleted_';
 
-
 	/**
 	 * Returns an array where every entry is a single SQL-statement. Input must be formatted like an ordinary MySQL-dump files.
 	 *
@@ -56,19 +60,15 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 */
 	function getStatementArray($sqlcode, $removeNonSQL = 0, $query_regex = '') {
 		$sqlcodeArr = explode(LF, $sqlcode);
-
-			// Based on the assumption that the sql-dump has
+		// Based on the assumption that the sql-dump has
 		$statementArray = array();
 		$statementArrayPointer = 0;
-
 		foreach ($sqlcodeArr as $line => $lineContent) {
 			$is_set = 0;
-
 				// auto_increment fields cannot have a default value!
 			if (stristr($lineContent, 'auto_increment')) {
 				$lineContent = preg_replace('/ default \'0\'/i', '', $lineContent);
 			}
-
 			if (!$removeNonSQL || (strcmp(trim($lineContent), '') && substr(trim($lineContent), 0, 1) != '#' && substr(trim($lineContent), 0, 2) != '--')) { // '--' is seen as mysqldump comments from server version 3.23.49
 				$statementArray[$statementArrayPointer] .= $lineContent;
 				$is_set = 1;
@@ -80,12 +80,10 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 					}
 				}
 				$statementArrayPointer++;
-
 			} elseif ($is_set) {
 				$statementArray[$statementArrayPointer] .= LF;
 			}
 		}
-
 		return $statementArray;
 	}
 
@@ -106,12 +104,10 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 		$lines = t3lib_div::trimExplode(LF, $fileContent, 1);
 		$table = '';
 		$total = array();
-
 		foreach ($lines as $value) {
 			if (substr($value, 0, 1) === '#') {
 				continue; // Ignore comments
 			}
-
 			if (!strlen($table)) {
 				$parts = t3lib_div::trimExplode(' ', $value, TRUE);
 				if (strtoupper($parts[0]) === 'CREATE' && strtoupper($parts[1]) === 'TABLE') {
@@ -126,8 +122,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 					if (preg_match('/(ENGINE|TYPE)[ ]*=[ ]*([a-zA-Z]*)/', $value, $ttype)) {
 						$total[$table]['extra']['ENGINE'] = $ttype[2];
 					} // Otherwise, just do nothing: If table engine is not defined, just accept the system default.
-
-						// Set the collation, if specified
+					// Set the collation, if specified
 					if (preg_match('/(COLLATE)[ ]*=[ ]*([a-zA-z0-9_-]+)/', $value, $tcollation)) {
 						$total[$table]['extra']['COLLATE'] = $tcollation[2];
 					} else {
@@ -144,10 +139,8 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 					$lineV = preg_replace('/,$/', '', $value); // Strip trailing commas
 					$lineV = str_replace('`', '', $lineV);
 					$lineV = str_replace('  ', ' ', $lineV); // Remove double blanks
-
 					$parts = explode(' ', $lineV, 2);
 					if (!preg_match('/(PRIMARY|UNIQUE|FULLTEXT|INDEX|KEY)/', $parts[0])) { // Field definition
-
 							// Make sure there is no default value when auto_increment is set
 						if (stristr($parts[1], 'auto_increment')) {
 							$parts[1] = preg_replace('/ default \'0\'/i', '', $parts[1]);
@@ -156,28 +149,21 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 						if (stristr($parts[1], ' DEFAULT ')) {
 							$parts[1] = str_ireplace(' DEFAULT ', ' default ', $parts[1]);
 						}
-
 							// Change order of "default" and "null" statements
 						$parts[1] = preg_replace('/(.*) (default .*) (NOT NULL)/', '$1 $3 $2', $parts[1]);
 						$parts[1] = preg_replace('/(.*) (default .*) (NULL)/', '$1 $3 $2', $parts[1]);
-
 						$key = $parts[0];
 						$total[$table]['fields'][$key] = $parts[1];
-
 					} else { // Key definition
 						$search = array('/UNIQUE (INDEX|KEY)/', '/FULLTEXT (INDEX|KEY)/', '/INDEX/');
 						$replace = array('UNIQUE', 'FULLTEXT', 'KEY');
 						$lineV = preg_replace($search, $replace, $lineV);
-
 						if (preg_match('/PRIMARY|UNIQUE|FULLTEXT/', $parts[0])) {
 							$parts[1] = preg_replace('/^(KEY|INDEX) /', '', $parts[1]);
 						}
-
 						$newParts = explode(' ', $parts[1], 2);
 						$key = $parts[0] == 'PRIMARY' ? $parts[0] : $newParts[0];
-
 						$total[$table]['keys'][$key] = $lineV;
-
 							// This is a protection against doing something stupid: Only allow clearing of cache_* and index_* tables.
 						if (preg_match('/^(cache|index)_/', $table)) {
 								// Suggest to truncate (clear) this table
@@ -206,12 +192,10 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 				$this->character_sets[$charset] = array(); // Add empty element to avoid that the check will be repeated
 			}
 		}
-
 		$collation = '';
 		if (isset($this->character_sets[$charset]['Default collation'])) {
 			$collation = $this->character_sets[$charset]['Default collation'];
 		}
-
 		return $collation;
 	}
 
@@ -226,14 +210,11 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 * @see getFieldDefinitions_fileContent()
 	 */
 	function getFieldDefinitions_sqlContent_parseTypes(array &$total) {
-
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['multiplyDBfieldSize'] >= 1 && $GLOBALS['TYPO3_CONF_VARS']['SYS']['multiplyDBfieldSize'] <= 5) {
 			$this->multiplySize = (double) $GLOBALS['TYPO3_CONF_VARS']['SYS']['multiplyDBfieldSize'];
 		}
-
 		$mSize = (double) $this->multiplySize;
 		if ($mSize > 1) {
-
 				// Init SQL parser:
 			$sqlParser = t3lib_div::makeInstance('t3lib_sqlparser');
 			foreach ($total as $table => $cfg) {
@@ -241,12 +222,10 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 					foreach ($cfg['fields'] as $fN => $fType) {
 						$orig_fType = $fType;
 						$fInfo = $sqlParser->parseFieldDef($fType);
-
 						switch ($fInfo['fieldType']) {
 							case 'char':
 							case 'varchar':
 								$newSize = round($fInfo['value'] * $mSize);
-
 								if ($newSize <= 255) {
 									$fInfo['value'] = $newSize;
 								} else {
@@ -279,7 +258,6 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 								$fInfo['fieldType'] = 'text';
 							break;
 						}
-
 						$total[$table]['fields'][$fN] = $sqlParser->compileFieldCfg($fInfo);
 						if ($sqlParser->parse_error) {
 							throw new RuntimeException(
@@ -302,22 +280,17 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 		$total = array();
 		$tempKeys = array();
 		$tempKeysPrefix = array();
-
 		$GLOBALS['TYPO3_DB']->sql_select_db(TYPO3_db);
 		echo $GLOBALS['TYPO3_DB']->sql_error();
-
 		$tables = $GLOBALS['TYPO3_DB']->admin_get_tables(TYPO3_db);
 		foreach ($tables as $tableName => $tableStatus) {
-
-				// Fields:
+			// Fields:
 			$fieldInformation = $GLOBALS['TYPO3_DB']->admin_get_fields($tableName);
 			foreach ($fieldInformation as $fN => $fieldRow) {
 				$total[$tableName]['fields'][$fN] = $this->assembleFieldDefinition($fieldRow);
 			}
-
-				// Keys:
+			// Keys:
 			$keyInformation = $GLOBALS['TYPO3_DB']->admin_get_keys($tableName);
-
 			foreach ($keyInformation as $keyRow) {
 				$keyName = $keyRow['Key_name'];
 				$colName = $keyRow['Column_name'];
@@ -339,14 +312,12 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 				}
 				$tempKeysPrefix[$tableName][$keyName] = $prefix;
 			}
-
-				// Table status (storage engine, collaction, etc.)
+			// Table status (storage engine, collaction, etc.)
 			if (is_array($tableStatus)) {
 				$tableExtraFields = array(
 					'Engine' => 'ENGINE',
 					'Collation' => 'COLLATE',
 				);
-
 				foreach ($tableExtraFields as $mysqlKey => $internalKey) {
 					if (isset($tableStatus[$mysqlKey])) {
 						$total[$tableName]['extra'][$internalKey] = $tableStatus[$mysqlKey];
@@ -354,8 +325,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 				}
 			}
 		}
-
-			// Compile key information:
+		// Compile key information:
 		if (count($tempKeys)) {
 			foreach ($tempKeys as $table => $keyInf) {
 				foreach ($keyInf as $kName => $index) {
@@ -364,7 +334,6 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 				}
 			}
 		}
-
 		return $total;
 	}
 
@@ -376,7 +345,6 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 */
 	function assembleFieldDefinition(array $row) {
 		$field = array($row['Type']);
-
 		if ($row['Null'] == 'NO') {
 			$field[] = 'NOT NULL';
 		}
@@ -389,7 +357,6 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 		if ($row['Extra']) {
 			$field[] = $row['Extra'];
 		}
-
 		return implode(' ', $field);
 	}
 
@@ -407,7 +374,6 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	function getDatabaseExtra(array $FDsrc, array $FDcomp, $onlyTableList = '', $ignoreNotNullWhenComparing = TRUE) {
 		$extraArr = array();
 		$diffArr = array();
-
 		if (is_array($FDsrc)) {
 			foreach ($FDsrc as $table => $info) {
 				if (!strlen($onlyTableList) || t3lib_div::inList($onlyTableList, $table)) {
@@ -444,13 +410,11 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 				}
 			}
 		}
-
 		$output = array(
 			'extra' => $extraArr,
 			'diff' => $diffArr,
 			'diff_currentValues' => $diffArr_cur
 		);
-
 		return $output;
 	}
 
@@ -539,9 +503,7 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 						$extras = array();
 						$extras_currentValue = array();
 						$clear_table = FALSE;
-
 						foreach ($info['extra'] as $fN => $fV) {
-
 								// Only consider statements which are missing in the database but don't remove existing properties
 							if (!$remove) {
 								if (!$info['whole_table']) { // If the whole table is created at once, we take care of this later by imploding all elements of $info['extra']
@@ -608,11 +570,9 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 	 * @return array
 	 */
 	public function filterByIdentityField(array $statements) {
-
 		$identityConfiguration = $GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'];
 		$identityProviders = $identityConfiguration[Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST];
 		$identityField = $identityProviders['recordUuid'][Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
-
 		$result = array();
 		foreach ($statements as $key => $statement) {
 			if (strpos($statement, 'ADD ' . $identityField . ' ') !== FALSE ||
@@ -620,13 +580,14 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 				$result[$key] = $statement;
 			}
 		}
-
 		return $result;
 	}
 
 
 	protected $templateFilePath = 'typo3/sysext/install/Resources/Private/Templates/';
+
 	protected $dbUpdateCheckboxPrefix = 'TYPO3_INSTALL[database_update]'; // Prefix for checkbox fields when updating database.
+
 	protected $backPath = '../'; // Backpath (used for icons etc.)
 
 	/**
@@ -695,7 +656,6 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 					'checked' => ($checked ? 'checked="checked"' : ''),
 					'string' => htmlspecialchars($string)
 				);
-
 				if ($iconDis) {
 					$iconMarkers['backPath'] = $this->backPath;
 					if (preg_match('/^TRUNCATE/i', $string)) {
@@ -728,7 +688,6 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 					'###ICONAVAILABLE###',
 					$iconSubpart
 				);
-
 				if (isset($currentValue[$key])) {
 						// Get the subpart for current
 					$currentSubpart = t3lib_parsehtml::getSubpart($rowsSubpart, '###CURRENT###');
@@ -752,7 +711,6 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 					'###CURRENT###',
 					$currentSubpart
 				);
-
 				$errorSubpart = '';
 				if (isset($this->databaseUpdateErrorMessages[$key])) {
 						// Get the subpart for current
@@ -776,7 +734,6 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 					'###ERROR###',
 					$errorSubpart
 				);
-
 					// Fill the markers in the subpart
 				$rowsSubpart = t3lib_parsehtml::substituteMarkerArray(
 					$rowsSubpart,
@@ -785,7 +742,6 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 					TRUE,
 					FALSE
 				);
-
 				$rows[] = $rowsSubpart;
 			}
 				// Substitute the subpart for rows
@@ -794,12 +750,10 @@ class Tx_Identity_Install_Installer implements t3lib_Singleton {
 				'###ROWS###',
 				implode(LF, $rows)
 			);
-
 			if (count($warnings)) {
 					// Get the subpart for warnings
 				$warningsSubpart = t3lib_parsehtml::getSubpart($content, '###WARNINGS###');
 				$warningItems = array();
-
 				foreach ($warnings as $warning) {
 						// Get the subpart for single warning items
 					$warningItemSubpart = t3lib_parsehtml::getSubpart($warningsSubpart, '###WARNINGITEM###');
