@@ -49,6 +49,11 @@
 				missing.
 				You should open up the Install tool and run the "Compare" tool under "Database Analyser"
 			</label>
+			<label index="tasks_rebuildTask.name">Rebuild Identity Map</label>
+			<label index="tasks_rebuildTask.description">This task is intended to rebuild identifiers for records
+				without identifier. Further the identity map, that maps identitfies to record locations will be updated
+				and kept in sync with the records.
+			</label>
 		</languageKey>
 	</data>
 </T3locallang>

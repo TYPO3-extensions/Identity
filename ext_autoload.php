@@ -1,8 +1,6 @@
 <?php
 /*
  * Register necessary class names with autoloader
- *
- * $Id: $
  */
 return array(
 	't3lib_db_preprocessqueryhook' => PATH_t3lib . 'interfaces/interface.t3lib_db_preprocessqueryhook.php',
@@ -16,5 +14,6 @@ return array(
 	'tx_identity_provider_staticrecorduuid' => t3lib_extMgm::extPath('identity', 'Classes/Provider/StaticRecordUuid.php'),
 	'tx_identity_utility_fielddefinitions' => t3lib_extMgm::extPath('identity', 'Classes/Utility/FieldDefinitions.php'),
 	'tx_identity_utility_algorithms' => t3lib_extMgm::extPath('identity', 'Classes/Utility/Algorithms.php'),
+	'tx_identity_tasks_rebuildtask' => t3lib_extMgm::extPath('identity', 'Classes/Tasks/RebuildTask.php'),
 );
 ?>

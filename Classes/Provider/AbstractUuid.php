@@ -332,7 +332,7 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 		} else {
 			$validUid = t3lib_utility_Math::canBeInterpretedAsInteger($uid);
 		}
-		if (isset($GLOBALS['TCA'][$tablename]) && $validUid) {
+		if ($validUid) {
 			if (isset($this->insertQueue[$uuid])) {
 				unset($this->insertQueue[$uuid]);
 			}
@@ -383,18 +383,38 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	 */
 	protected function removeNeedlessUUIDs() {
 		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
-		foreach ($GLOBALS['TCA'] as $tablename => $configuration) {
-			$rows = $this->db->exec_SELECTgetRows(
-				$this->identityTable . '.' . $identityField . ', ' . $this->identityTable . '.foreign_uid',
-					$tablename . ' RIGHT JOIN ' . $this->identityTable . ' ON ' .
-					$this->identityTable . '.' . $identityField .
-					' = ' .
-					$tablename . '.' . $identityField . ' AND ' . $this->identityTable . '.foreign_uid = ' . $tablename . '.uid',
-					'foreign_tablename LIKE ' . $tablename . ' AND ' . $tablename . '.uid IS NULL'
-			);
-			if (is_array($rows)) {
-				foreach ($rows as $row) {
-					$this->unregisterUUID($row[$identityField], $tablename, $row['uid']);
+		$tablenames = $this->db->exec_SELECTgetRows(
+			$this->identityTable . '.foreign_tablename',
+			$this->identityTable,
+			'',
+			$this->identityTable . '.foreign_tablename',
+			'',
+			'',
+			'foreign_tablename'
+		);
+		if (is_array($tablenames) && !empty($tablenames)) {
+			foreach (array_keys($tablenames) as $tablename) {
+				if ($this->isApplicable($tablename)) {
+					$rows = $this->db->exec_SELECTgetRows(
+						$this->identityTable . '.' . $identityField . ', ' . $this->identityTable . '.foreign_uid',
+						$tablename . ' RIGHT JOIN ' . $this->identityTable . ' ON ' .
+						$this->identityTable . '.' . $identityField .
+						' = ' .
+						$tablename . '.' . $identityField . ' AND ' . $this->identityTable . '.foreign_uid = ' . $tablename . '.uid',
+						'foreign_tablename LIKE \'' . $tablename . '\' AND ' . $tablename . '.uid IS NULL'
+					);
+				} else {
+					// Not applicable means, delete all in registry regarding this tablename
+					$rows = $this->db->exec_SELECTgetRows(
+						$this->identityTable . '.' . $identityField . ', ' . $this->identityTable . '.foreign_uid',
+						$this->identityTable,
+						'foreign_tablename LIKE \'' . $tablename . '\''
+					);
+				}
+				if (is_array($rows)) {
+					foreach ($rows as $row) {
+						$this->unregisterUUID($row[$identityField], $tablename, $row['foreign_uid']);
+					}
 				}
 			}
 		}
