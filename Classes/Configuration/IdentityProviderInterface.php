@@ -31,17 +31,52 @@
  * constants, that can be used in configuration arrays as keys.
  *
  * @author Thomas Maroschik <tmaroschik@dfau.de>
- *
+ * @api
  * @package TYPO3
  * @subpackage identity
  */
 interface Tx_Identity_Configuration_IdentityProviderInterface {
 
+	/**
+	 * A configuration key that can be used to define table specific identity providers
+	 *
+	 * @api
+	 */
 	const KEY							= 'identityProvider';
+
+	/**
+	 * A configuration key for the list of identity providers
+	 *
+	 * @api
+	 */
 	const PROVIDERS_LIST				= 'identityProviders';
+
+	/**
+	 * A configuration key for the default identity provider
+	 *
+	 * @api
+	 */
 	const DEFAULT_PROVIDER				= 'defaultProvider';
+
+	/**
+	 * A configuration key for the field name of an identity provider
+	 *
+	 * @api
+	 */
 	const IDENTITY_FIELD				= 'identityField';
+
+	/**
+	 * A configuration key for the sql create clause for identity fields of an identity provider
+	 *
+	 * @api
+	 */
 	const IDENTITY_FIELD_CREATE_CLAUSE	= 'identityFieldCreateClause';
+
+	/**
+	 * A configuration key for the classname of an identity provider
+	 *
+	 * @api
+	 */
 	const PROVIDER_CLASS				= 'providerClass';
 
 }

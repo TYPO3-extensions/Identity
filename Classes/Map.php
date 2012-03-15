@@ -25,13 +25,12 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+
 /**
- *
  * This is the base of the identity extension.
- * @api
  *
  * @author Thomas Maroschik <tmaroschik@dfau.de>
- *
+ * @api
  * @package TYPO3
  * @subpackage identity
  */
@@ -59,6 +58,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 
 	/**
 	 * Constructor method for the identifier registry
+	 *
 	 * @api
 	 */
 	public function initializeObject() {
@@ -134,8 +134,6 @@ class Tx_Identity_Map implements t3lib_Singleton {
 					$this->tableSpecificIdentityProviders[$table] = $this->identityProviders[$identityProviderKey];
 				}
 			}
-		} else {
-			throw new RuntimeException('TCA is not available at the moment.', 1300109740);
 		}
 	}
 
@@ -221,8 +219,11 @@ class Tx_Identity_Map implements t3lib_Singleton {
 	}
 
 	/**
+	 * Returns if the tablename can have an identifier
+	 *
 	 * @param string $tablename
 	 * @return bool
+	 * @api
 	 */
 	public function isApplicable($tablename) {
 		$this->initializeObject();
@@ -237,6 +238,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 
 	/**
 	 * Give all providers the chance to perform some kind of rebuild
+	 *
 	 * @api
 	 */
 	public function rebuild() {
@@ -250,6 +252,7 @@ class Tx_Identity_Map implements t3lib_Singleton {
 
 	/**
 	 * Give all providers the chance to perform some kind of persistence
+	 *
 	 * @api
 	 */
 	public function commit() {
@@ -263,6 +266,6 @@ class Tx_Identity_Map implements t3lib_Singleton {
 
 }
 
-if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['EXT:uuid/Class/Registry.php'])) {
-	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['EXT:uuid/Class/Registry.php']);
+if (defined('TYPO3_MODE') && isset($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['EXT:identity/Classes/Map.php'])) {
+	include_once($GLOBALS['TYPO3_CONF_VARS'][TYPO3_MODE]['XCLASS']['EXT:identity/Classes/Map.php']);
 }
