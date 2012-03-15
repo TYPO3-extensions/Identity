@@ -207,7 +207,7 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 		$row = $this->db->exec_SELECTgetSingleRow(
 			'foreign_tablename, foreign_uid',
 			$this->identityTable,
-				$identityField . ' = ' . $this->db->fullQuoteStr($uuid, $this->identityTable)
+			$identityField . ' = ' . $this->db->fullQuoteStr($uuid, $this->identityTable)
 		);
 		if ($row) {
 			$this->addToCache($uuid, $row['foreign_tablename'], $row['foreign_uid']);
@@ -265,7 +265,7 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	 * Requests a new identifier for a resource location
 	 *
 	 * @param string $tablename
-	 * @return string
+	 * @return mixed
 	 */
 	public function getIdentifierForNewResourceLocation($tablename) {
 		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
@@ -278,6 +278,7 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 			);
 			return $uuid;
 		}
+		return null;
 	}
 
 	/**
@@ -316,6 +317,14 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	}
 
 	/**
+	 * Flushes the internal uuid caches and frees memory
+	 */
+	protected function flushCache() {
+		$this->uuidMap = array();
+		$this->tablenameUidMap = array();
+	}
+
+	/**
 	 * Unregisters an uuid triple
 	 *
 	 * @param	string	identifier
@@ -341,9 +350,7 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 				'foreign_tablename' => $tablename,
 				'foreign_uid' => $uid
 			);
-			if (!$this->db->sql_error()) {
-				$this->removeFromCache($uuid, $tablename, $uid);
-			}
+			$this->removeFromCache($uuid, $tablename, $uid);
 		}
 	}
 
@@ -354,6 +361,28 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 		$this->insertMissingUUIDs();
 		$this->removeNeedlessUUIDs();
 		$this->registerUnregisteredUUIDs();
+	}
+
+	/**
+	 * Walks through all tables and inserts an uuid to a record that has any
+	 */
+	protected function insertMissingUUIDs() {
+		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+		foreach ($GLOBALS['TCA'] as $tablename => $configuration) {
+			$rows = $this->db->exec_SELECTgetRows('uid', $tablename, $identityField . " LIKE ''");
+			if (count($rows)) {
+				foreach ($rows as &$row) {
+					$uuid = Tx_Identity_Utility_Algorithms::generateUUID();
+					$this->db->exec_UPDATEquery($tablename, 'uid = ' . $row['uid'], array($identityField => $uuid));
+					$this->insertQueue[$uuid] = array(
+						$identityField => $uuid,
+						'foreign_tablename' => $tablename,
+						'foreign_uid' => $row['uid']
+					);
+					$this->addToCache($uuid, $tablename, $row['uid']);
+				}
+			}
+		}
 	}
 
 	/**
@@ -421,28 +450,6 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	}
 
 	/**
-	 * Walks through all tables and inserts an uuid to a record that has any
-	 */
-	protected function insertMissingUUIDs() {
-		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
-		foreach ($GLOBALS['TCA'] as $tablename => $configuration) {
-			$rows = $this->db->exec_SELECTgetRows('uid', $tablename, $identityField . " LIKE ''");
-			if (count($rows)) {
-				foreach ($rows as &$row) {
-					$uuid = Tx_Identity_Utility_Algorithms::generateUUID();
-					$this->db->exec_UPDATEquery($tablename, 'uid = ' . $row['uid'], array($identityField => $uuid));
-					$this->insertQueue[$uuid] = array(
-						$identityField => $uuid,
-						'foreign_tablename' => $tablename,
-						'foreign_uid' => $row['uid']
-					);
-					$this->addToCache($uuid, $tablename, $row['uid']);
-				}
-			}
-		}
-	}
-
-	/**
 	 * Check the insert queue for incomplete record locations (lastInsertId for example)
 	 */
 	protected function completeInsertQueue() {
@@ -495,8 +502,10 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 						. ' foreign_uid = ' . $this->db->fullQuoteStr($deletableEntries['uid'], $this->identityTable) . ')'
 					);
 				}
+				$this->deleteQueue = array();
 			}
 		}
+		$this->flushCache();
 	}
 
 }
