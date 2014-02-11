@@ -1,8 +1,10 @@
 <?php
+namespace Maroschik\Identity\Hooks;
+
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2011 Thomas Maroschik <tmaroschik@dfau.de>
+ *  (c) 2011-2013 Thomas Maroschik <tmaroschik@dfau.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -29,14 +31,11 @@
  * Hooks for TYPO3 DB Preprocessing.
  *
  * @author Thomas Maroschik <tmaroschik@dfau.de>
- *
- * @package TYPO3
- * @subpackage identity
  */
-class tx_identity_t3lib_db_preprocess implements t3lib_DB_preProcessQueryHook {
+class DatabasePreProcessQueryHook implements \TYPO3\CMS\Core\Database\PreProcessQueryHookInterface {
 
 	/**
-	 * @var Tx_Identity_Map
+	 * @var \Maroschik\Identity\IdentityMap
 	 */
 	protected $identityMap;
 
@@ -44,7 +43,7 @@ class tx_identity_t3lib_db_preprocess implements t3lib_DB_preProcessQueryHook {
 	 * Constructor method for the t3lib_DB posprocess hook
 	 */
 	public function __construct() {
-		$this->identityMap = t3lib_div::makeInstance('Tx_Identity_Map');
+		$this->identityMap = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('Maroschik\Identity\IdentityMap');
 	}
 
 	/**
@@ -52,11 +51,11 @@ class tx_identity_t3lib_db_preprocess implements t3lib_DB_preProcessQueryHook {
 	 *
 	 * @param string $table Database table name
 	 * @param array $fieldsValues Field values as key => value pairs
-	 * @param string/array $noQuoteFields List/array of keys NOT to quote
-	 * @param t3lib_DB $parentObject
+	 * @param string|array $noQuoteFields List/array of keys NOT to quote
+	 * @param \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject
 	 * @return void
 	 */
-	public function INSERTquery_preProcessAction(&$table, array &$fieldsValues, &$noQuoteFields, t3lib_DB $parentObject) {
+	public function INSERTquery_preProcessAction(&$table, array &$fieldsValues, &$noQuoteFields, \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject) {
 		// Check if applicable
 		$identifier = $this->identityMap->getIdentifierForNewResourceLocation($table);
 		if ($identifier !== NULL) {
@@ -72,10 +71,10 @@ class tx_identity_t3lib_db_preprocess implements t3lib_DB_preProcessQueryHook {
 	 * @param array $fields Field names
 	 * @param array $rows Table rows
 	 * @param string/array $noQuoteFields List/array of keys NOT to quote
-	 * @param t3lib_DB $parentObject
+	 * @param \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject
 	 * @return void
 	 */
-	public function INSERTmultipleRows_preProcessAction(&$table, array &$fields, array &$rows, &$noQuoteFields, t3lib_DB $parentObject) {
+	public function INSERTmultipleRows_preProcessAction(&$table, array &$fields, array &$rows, &$noQuoteFields, \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject) {
 		// Check if applicable
 		$identifier = $this->identityMap->getIdentifierForNewResourceLocation($table);
 		if ($identifier !== NULL) {
@@ -88,17 +87,33 @@ class tx_identity_t3lib_db_preprocess implements t3lib_DB_preProcessQueryHook {
 	}
 
 	/**
+	 * Pre-processor for the SELECTquery method.
+	 *
+	 * @param string $select_fields Fields to be selected
+	 * @param string $from_table Table to select data from
+	 * @param string $where_clause Where clause
+	 * @param string $groupBy Group by statement
+	 * @param string $orderBy Order by statement
+	 * @param integer $limit Database return limit
+	 * @param \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject
+	 * @return void
+	 */
+	public function SELECTquery_preProcessAction(&$select_fields, &$from_table, &$where_clause, &$groupBy, &$orderBy, &$limit, \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject) {
+		// TODO: Implement SELECTquery_preProcessAction() method.
+	}
+
+	/**
 	 * Pre-processor for the UPDATEquery method.
 	 *
 	 * @param string $table Database table name
 	 * @param string $where WHERE clause
 	 * @param array $fieldsValues Field values as key => value pairs
 	 * @param string/array $noQuoteFields List/array of keys NOT to quote
-	 * @param t3lib_DB $parentObject
+	 * @param \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject
 	 * @return void
 	 */
-	public function UPDATEquery_preProcessAction(&$table, &$where, array &$fieldsValues, &$noQuoteFields, t3lib_DB $parentObject) {
-		// Do nothing
+	public function UPDATEquery_preProcessAction(&$table, &$where, array &$fieldsValues, &$noQuoteFields, \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject) {
+		// TODO: Implement UPDATEquery_preProcessAction() method.
 	}
 
 	/**
@@ -106,22 +121,21 @@ class tx_identity_t3lib_db_preprocess implements t3lib_DB_preProcessQueryHook {
 	 *
 	 * @param string $table Database table name
 	 * @param string $where WHERE clause
-	 * @param t3lib_DB $parentObject
+	 * @param \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject
 	 * @return void
 	 */
-	public function DELETEquery_preProcessAction(&$table, &$where, t3lib_DB $parentObject) {
-		// Do nothing
+	public function DELETEquery_preProcessAction(&$table, &$where, \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject) {
+		// TODO: Implement DELETEquery_preProcessAction() method.
 	}
 
 	/**
 	 * Pre-processor for the TRUNCATEquery method.
 	 *
 	 * @param string $table Database table name
-	 * @param t3lib_DB $parentObject
+	 * @param \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject
 	 * @return void
 	 */
-	public function TRUNCATEquery_preProcessAction(&$table, t3lib_DB $parentObject) {
-		// Do nothing
+	public function TRUNCATEquery_preProcessAction(&$table, \TYPO3\CMS\Core\Database\DatabaseConnection $parentObject) {
+		// TODO: Implement TRUNCATEquery_preProcessAction() method.
 	}
-
 }

@@ -1,8 +1,10 @@
 <?php
+namespace Maroschik\Identity\Provider;
+
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2011 Thomas Maroschik <tmaroschik@dfau.de>
+ *  (c) 2011-2013 Thomas Maroschik <tmaroschik@dfau.de>
  *
  *  All rights reserved
  *
@@ -25,15 +27,15 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+
+use Maroschik\Identity\Configuration\IdentityProviderConfigurationInterface as ProviderConfiguration;
+
 /**
  * This class is the concrete implementation of the abstract uuid class for all static records
  *
  * @author Thomas Maroschik <tmaroschik@dfau.de>
- *
- * @package TYPO3
- * @subpackage identity
  */
-class Tx_Identity_Provider_StaticRecordUuid extends Tx_Identity_Provider_AbstractUuid {
+class StaticRecordUuidProvider extends AbstractUuidProvider {
 
 	/**
 	 * Rebuilds the registry
@@ -46,12 +48,12 @@ class Tx_Identity_Provider_StaticRecordUuid extends Tx_Identity_Provider_Abstrac
 	 * Walks through all tables and inserts an uuid to a record that has any
 	 */
 	protected function insertMissingUUIDs() {
-		$identityField =  $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+		$identityField =  $this->configuration[ProviderConfiguration::IDENTITY_FIELD];
 		foreach ($GLOBALS['TCA'] as $tablename=>$configuration) {
 			$rows = $this->db->exec_SELECTgetRows('uid', $tablename, $identityField . " LIKE ''");
 			if (count($rows)) {
 				foreach ($rows as &$row) {
-					$uuid = Tx_Identity_Utility_Algorithms::generateUUIDforStaticTable($tablename, $row['uid']);
+					$uuid = \Maroschik\Identity\Utility\Algorithms::generateUUIDforStaticTable($tablename, $row['uid']);
 					$this->db->exec_UPDATEquery($tablename, 'uid = ' .$row['uid'], array($identityField => $uuid));
 					$this->insertQueue[$uuid] = array(
 						 $identityField => $uuid,

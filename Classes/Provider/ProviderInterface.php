@@ -1,8 +1,10 @@
 <?php
+namespace Maroschik\Identity\Provider;
+
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2011 Thomas Maroschik <tmaroschik@dfau.de>
+ *  (c) 2011-2013 Thomas Maroschik <tmaroschik@dfau.de>
  *
  *  All rights reserved
  *
@@ -27,56 +29,56 @@
  ***************************************************************/
 
 /**
- * An interface that supports the configuration of ext:identity by delivering some
- * constants, that can be used in configuration arrays as keys.
- *
- * @author Thomas Maroschik <tmaroschik@dfau.de>
+ * This interface has to be implemented by every identity provider
  * @api
- * @package TYPO3
- * @subpackage identity
  */
-interface Tx_Identity_Configuration_IdentityProviderInterface {
+interface ProviderInterface {
 
 	/**
-	 * A configuration key that can be used to define table specific identity providers
+	 * Sets the provider key on the provider
 	 *
-	 * @api
+	 * @param string $providerKey
 	 */
-	const KEY							= 'identityProvider';
+	public function __construct($providerKey);
 
 	/**
-	 * A configuration key for the list of identity providers
+	 * Validates the identifier
 	 *
-	 * @api
+	 * @param mixed $identifier
 	 */
-	const PROVIDERS_LIST				= 'identityProviders';
+	public function validateIdentifier($identifier);
 
 	/**
-	 * A configuration key for the default identity provider
+	 * Checks if this provider is applicable to the table
 	 *
-	 * @api
+	 * @param string $tablename
+	 * @return bool
 	 */
-	const DEFAULT_PROVIDER				= 'defaultProvider';
+	public function isApplicable($tablename);
 
 	/**
-	 * A configuration key for the field name of an identity provider
+	 * Returns a unique identifier for a resource location
 	 *
-	 * @api
+	 * @param string $tablename
+	 * @param int $uid
+	 * @return mixed the unique identifier
 	 */
-	const IDENTITY_FIELD				= 'identityField';
+	public function getIdentifierForResourceLocation($tablename, $uid);
 
 	/**
-	 * A configuration key for the sql create clause for identity fields of an identity provider
+	 * Requests a new identifier for a resource location
 	 *
-	 * @api
+	 * @param string $tablename
+	 * @return mixed
 	 */
-	const IDENTITY_FIELD_CREATE_CLAUSE	= 'identityFieldCreateClause';
+	public function getIdentifierForNewResourceLocation($tablename);
 
 	/**
-	 * A configuration key for the classname of an identity provider
+	 * Returns a resource location for an identifier
 	 *
-	 * @api
+	 * @param mixed $identifier
+	 * @return array [tablename, uid] the resource location
 	 */
-	const PROVIDER_CLASS				= 'providerClass';
+	public function getResourceLocationForIdentifier($identifier);
 
 }

@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2011 Thomas Maroschik <tmaroschik@dfau.de>
+ *  (c) 2011-2013 Thomas Maroschik <tmaroschik@dfau.de>
  *
  *  All rights reserved
  *
@@ -26,46 +26,54 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-if (!defined ('TYPO3_MODE')) {
+if (!defined('TYPO3_MODE')) {
 	die ('Access denied.');
 }
 
+use Maroschik\Identity\Configuration\IdentityProviderConfigurationInterface as ProviderConfiguration;
+
 // Configure the default identity providers.
-$GLOBALS['TYPO3_CONF_VARS']['EXTCONF'][$_EXTKEY] = array(
-	Tx_Identity_Configuration_IdentityProviderInterface::PROVIDERS_LIST	=> array(
-		'recordUuid'	=> array(
-			Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD					=>	'uuid',
-			Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE	=>	'char(36) NOT NULL default \'\'',
-			Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS					=>	'Tx_Identity_Provider_RecordUuid',
+$GLOBALS['TYPO3_CONF_VARS']['EXTCONF']['identity'] = array(
+	ProviderConfiguration::PROVIDERS_LIST => array(
+		'recordUuid' => array(
+			ProviderConfiguration::IDENTITY_FIELD => 'uuid',
+			ProviderConfiguration::IDENTITY_FIELD_CREATE_CLAUSE => 'char(36) NOT NULL default \'\'',
+			ProviderConfiguration::PROVIDER_CLASS => 'Maroschik\Identity\Provider\RecordUuidProvider',
 		),
-		'staticRecordUuid'	=> array(
-			Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD					=>	'uuid',
-			Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD_CREATE_CLAUSE	=>	'char(36) NOT NULL default \'\'',
-			Tx_Identity_Configuration_IdentityProviderInterface::PROVIDER_CLASS					=>	'Tx_Identity_Provider_StaticRecordUuid',
+		'staticRecordUuid' => array(
+			ProviderConfiguration::IDENTITY_FIELD => 'uuid',
+			ProviderConfiguration::IDENTITY_FIELD_CREATE_CLAUSE => 'char(36) NOT NULL default \'\'',
+			ProviderConfiguration::PROVIDER_CLASS => 'Maroschik\Identity\Provider\StaticRecordUuidProvider',
 		),
 	),
-	Tx_Identity_Configuration_IdentityProviderInterface::DEFAULT_PROVIDER	=> 'recordUuid',
+	ProviderConfiguration::DEFAULT_PROVIDER => 'recordUuid',
 );
 
-// Register a hook for tce main
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass'][$_EXTKEY] = 'EXT:' . $_EXTKEY . '/Classes/Hooks/class.tx_identity_tcemain_hook.php:tx_identity_tcemain_hook';
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass']['identity'] = 'Maroschik\\Identity\\Hooks\\DataHandlerHook';
+$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_db.php']['queryProcessors']['identity'] = 'Maroschik\\Identity\\Hooks\\DatabasePreProcessQueryHook';
 
-//Register a hook for DB
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_db.php']['queryProcessors'][$_EXTKEY] = 'EXT:' . $_EXTKEY . '/Classes/Hooks/class.tx_identity_t3lib_db_preprocess.php:tx_identity_t3lib_db_preprocess';
+$signalSlotDispatcher = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Extbase\\SignalSlot\\Dispatcher');
+$signalSlotDispatcher->connect(
+	'TYPO3\\CMS\\Install\\Service\\SqlExpectedSchemaService',
+	'tablesDefinitionIsBeingBuilt',
+	'Maroschik\\Identity\\Utility\\FieldDefinitions',
+	'addIdentityFieldsToTablesDefintion'
+);
+$signalSlotDispatcher->connect(
+	'TYPO3\\CMS\\Extensionmanager\\Utility\\InstallUtility',
+	'tablesDefinitionIsBeingBuilt',
+	'Maroschik\\Identity\\Utility\\FieldDefinitions',
+	'addExtensionIdentityFieldsToTablesDefintion'
+);
 
-// Register a hook for the extension manager
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/mod/tools/em/index.php']['checkDBupdates'][] = 'EXT:identity/Classes/Hooks/class.tx_identity_em_hook.php:tx_identity_em_hook';
-
-// Register a hook for the install tool
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['ext/install/mod/class.tx_install.php']['checkTheDatabase'][] = 'EXT:identity/Classes/Hooks/class.tx_identity_em_hook.php:tx_identity_em_hook';
-
-
+if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('scheduler')) {
 	// Register extension list update task
-$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Tx_Identity_Tasks_RebuildTask'] = array(
-	'extension'			=> $_EXTKEY,
-	'title'				=> 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/locallang.xml:tasks_rebuildTask.name',
-	'description'		=> 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/locallang.xml:tasks_rebuildTask.description',
-	'additionalFields'	=> '',
-);
+	$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['scheduler']['tasks']['Maroschik\\Identity\\Tasks\\RebuildTask'] = array(
+		'extension' => 'identity',
+		'title' => 'LLL:EXT:identity/Resources/Private/Language/locallang.xml:tasks_rebuildTask.name',
+		'description' => 'LLL:EXT:identity/Resources/Private/Language/locallang.xml:tasks_rebuildTask.description',
+		'additionalFields' => '',
+	);
+}
 
 ?>

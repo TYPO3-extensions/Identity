@@ -2,7 +2,7 @@
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2011 Thomas Maroschik <tmaroschik@dfau.de>
+ *  (c) 2011-2013 Thomas Maroschik <tmaroschik@dfau.de>
  *
  *  All rights reserved
  *
@@ -26,14 +26,15 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-if (!defined ('TYPO3_MODE')) {
+if (!defined('TYPO3_MODE')) {
 	die ('Access denied.');
 }
 
-foreach ($GLOBALS['TCA'] as $tablename=>$configuration) {
-	t3lib_div::loadTCA($tablename);
+use Maroschik\Identity\Configuration\IdentityProviderConfigurationInterface as ProviderConfiguration;
+
+foreach ($GLOBALS['TCA'] as $tablename => $configuration) {
 	if (isset($GLOBALS['TCA'][$tablename]['ctrl']['is_static']) && $GLOBALS['TCA'][$tablename]['ctrl']['is_static']) {
-		$GLOBALS['TCA'][$tablename]['ctrl']['EXT']['identity'][Tx_Identity_Configuration_IdentityProviderInterface::KEY] = 'staticRecordUuid';
+		$GLOBALS['TCA'][$tablename]['ctrl']['EXT']['identity'][ProviderConfiguration::KEY] = 'staticRecordUuid';
 	}
 }
 

@@ -1,8 +1,10 @@
 <?php
+namespace Maroschik\Identity\Utility;
+
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2011 Thomas Maroschik <tmaroschik@dfau.de>
+ *  (c) 2011-2013 Thomas Maroschik <tmaroschik@dfau.de>
  *  All rights reserved
  *
  *  This class is a backport of the corresponding class of FLOW3.
@@ -27,15 +29,13 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+
 /**
  * A utility class for various algorithms.
  *
  * @author Thomas Maroschik <tmaroschik@dfau.de>
- *
- * @package TYPO3
- * @subpackage identity
  */
-class Tx_Identity_Utility_Algorithms {
+class Algorithms {
 
 	const TYPO3ORG_UUID = 'c4e6860b-3993-54a9-9c8b-f9bf558b0a77';
 
@@ -60,26 +60,27 @@ class Tx_Identity_Utility_Algorithms {
 
 	/**
 	 * Generates a universally unique identifier (UUID) according to RFC 4122 for static tables.
+	 *
 	 * @param string $tablename
-	 * @param int $uid
-	 * @return string The universally unique id
-	 * @author Thomas Maroschik <tmaroschik@dfau.de>
-	 * @throws
+	 * @param mixed $uid
+	 * @return string
+	 * @throws \InvalidArgumentException
 	 */
 	static public function generateUUIDforStaticTable($tablename, $uid) {
 		if (!isset($GLOBALS['TCA'][$tablename]['ctrl']['is_static']) && !$GLOBALS['TCA'][$tablename]['ctrl']['is_static']) {
-			throw new InvalidArgumentException('The given tablename "' . $tablename . '" is not defined as is_static in TCA.', 1299074512);
+			throw new \InvalidArgumentException('The given tablename "' . $tablename . '" is not defined as is_static in TCA.', 1299074512);
 		}
 		return self::generateUUIDv5(self::TYPO3ORG_UUID, $tablename . '_' . $uid);
 	}
 
 	/**
 	 * Generate an universally unique identifier (UUID) according to RFC 4122 v5.
+	 *
 	 * @param string $namespace
 	 * @param string $name
 	 * @author ranskills.com
 	 * @return string The unversally unique id
-	 * @throws InvalidArgumentException Throws an invalid argument exception, if the given namespace is not an uuid
+	 * @throws \InvalidArgumentException Throws an invalid argument exception, if the given namespace is not an uuid
 	 */
 	static public function generateUUIDv5($namespace, $name) {
 		// Get hexadecimal components of namespace

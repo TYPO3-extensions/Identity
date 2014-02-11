@@ -1,9 +1,10 @@
 <?php
+namespace Maroschik\Identity\Hooks;
+
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2011 Thomas Maroschik <tmaroschik@dfau.de>
- *
+ *  (c) 2011-2013 Thomas Maroschik <tmaroschik@dfau.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -25,14 +26,23 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+
 /**
- * This class is the concrete implementation of the abstract uuid class for all non static records
+ * Hooks for TYPO3 TCEMain.
  *
  * @author Thomas Maroschik <tmaroschik@dfau.de>
- *
- * @package TYPO3
- * @subpackage identity
  */
-class Tx_Identity_Provider_RecordUuid extends Tx_Identity_Provider_AbstractUuid {
+class DataHandlerHook {
+
+	/**
+	 * Commit the changes to the identity map after all database operations
+	 *
+	 * @param $parent
+	 */
+	public function processDatamap_afterAllOperations() {
+		/** @var $identityMap \Maroschik\Identity\IdentityMap */
+		$identityMap = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('Maroschik\Identity\IdentityMap');
+		$identityMap->commit();
+	}
 
 }

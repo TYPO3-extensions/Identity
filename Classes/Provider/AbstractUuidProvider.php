@@ -1,8 +1,10 @@
 <?php
+namespace Maroschik\Identity\Provider;
+
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2011 Thomas Maroschik <tmaroschik@dfau.de>
+ *  (c) 2011-2013 Thomas Maroschik <tmaroschik@dfau.de>
  *
  *  All rights reserved
  *
@@ -25,15 +27,15 @@
  *
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
+
+use Maroschik\Identity\Configuration\IdentityProviderConfigurationInterface as ProviderConfiguration;
+
 /**
  * This class is the abstract implementation for a uuid identity provide
  *
  * @author Thomas Maroschik <tmaroschik@dfau.de>
- *
- * @package TYPO3
- * @subpackage identity
  */
-class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface {
+class AbstractUuidProvider implements \Maroschik\Identity\Provider\ProviderInterface {
 
 	/**
 	 * @var string
@@ -56,17 +58,17 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	protected $isApplicableCache = array();
 
 	/**
-	 * @var t3lib_DB
+	 * @var \TYPO3\CMS\Core\Database\DatabaseConnection
 	 */
 	protected $db;
 
 	/**
-	 * @var	array
+	 * @var    array
 	 */
 	protected $uuidMap = array();
 
 	/**
-	 * @var	array
+	 * @var    array
 	 */
 	protected $tablenameUidMap = array();
 
@@ -81,20 +83,11 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	protected $deleteQueue = array();
 
 	/**
-	 * @var integer
-	 */
-	protected $version;
-
-	/**
 	 * Sets the provider key
 	 * @param string $providerKey
 	 */
 	public function __construct($providerKey) {
 		$this->providerKey = $providerKey;
-
-		$this->version = class_exists('t3lib_utility_VersionNumber')
-			? t3lib_utility_VersionNumber::convertVersionNumberToInteger(TYPO3_version)
-			: t3lib_div::int_from_ver(TYPO3_version);
 	}
 
 	/**
@@ -107,35 +100,35 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	}
 
 	/**
-	 * Injector method for a t3lib_DB
+	 * Injector method for a \TYPO3\CMS\Dbal\Database\DatabaseConnection
 	 *
-	 * @param t3lib_DB $db
+	 * @param \TYPO3\CMS\Dbal\Database\DatabaseConnection $databaseConnection
 	 */
-	public function injectDb(t3lib_DB $db) {
-		$this->db = $db;
+	public function injectDatabaseConnection(\TYPO3\CMS\Core\Database\DatabaseConnection $databaseConnection) {
+		$this->db = $databaseConnection;
 	}
 
 	/**
 	 * Checks the given UUID. If it does not have a valid format an
 	 * exception is thrown.
 	 *
-	 * @param	string	UUID.
-	 * @return	bool
-	 * @throws	InvalidArgumentException	Throws an exception if the given uuid is not valid
+	 * @param string $identifier
+	 * @return bool
+	 * @throws \InvalidArgumentException    Throws an exception if the given uuid is not valid
 	 */
 	public function validateIdentifier($identifier) {
 		if (!strlen($identifier)) {
-			throw new InvalidArgumentException('Empty UUID given.', 1299013185);
+			throw new \InvalidArgumentException('Empty UUID given.', 1299013185);
 		}
 		if (function_exists('uuid_is_valid') && !uuid_is_valid($identifier)) {
-			throw new InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013329);
+			throw new \InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013329);
 		}
 		if (strlen($identifier) !== 36) {
-			throw new InvalidArgumentException('Lenghth of UUID has to be 36 characters.', 1299013335);
+			throw new \InvalidArgumentException('Lenghth of UUID has to be 36 characters.', 1299013335);
 		}
 		$pattern = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
 		if (!preg_match($pattern, $identifier)) {
-			throw new InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013339);
+			throw new \InvalidArgumentException('Given UUID does not match the UUID pattern.', 1299013339);
 		}
 		return TRUE;
 	}
@@ -149,17 +142,10 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 			return $this->isApplicableCache[$tablename];
 		}
 		if (isset($GLOBALS['TCA']) && is_array($GLOBALS['TCA']) && in_array($tablename, array_keys($GLOBALS['TCA']))) {
-			$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+			$identityField = $this->configuration[ProviderConfiguration::IDENTITY_FIELD];
 			if ($identityField) {
-				// It is necessary to check if the table contains the identity field.
-				// During the installation of ext:identity there could occur sql errors until the
-				// extension manager/install tool hook kicks in and the tables are supplied with the identifier field.
-				$fields = $this->db->admin_get_fields($tablename);
-				$fieldNames = array_keys($fields);
-				if ($fields && in_array($identityField, $fieldNames)) {
-					$this->isApplicableCache[$tablename] = TRUE;
-					return $this->isApplicableCache[$tablename];
-				}
+				$this->isApplicableCache[$tablename] = TRUE;
+				return $this->isApplicableCache[$tablename];
 			}
 		}
 		$this->isApplicableCache[$tablename] = FALSE;
@@ -197,17 +183,15 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	/**
 	 * Loads an entry for a given uuid
 	 *
-	 * @param	string	identifier
-	 * @return	void
-	 * @throws	InvalidArgumentException	Throws an exception if the given namespace is not valid
+	 * @param string $$uuid
 	 */
 	protected function loadEntryByUUID($uuid) {
-		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+		$identityField = $this->configuration[ProviderConfiguration::IDENTITY_FIELD];
 		$this->validateIdentifier($uuid);
 		$row = $this->db->exec_SELECTgetSingleRow(
 			'foreign_tablename, foreign_uid',
 			$this->identityTable,
-			$identityField . ' = ' . $this->db->fullQuoteStr($uuid, $this->identityTable)
+				$identityField . ' = ' . $this->db->fullQuoteStr($uuid, $this->identityTable)
 		);
 		if ($row) {
 			$this->addToCache($uuid, $row['foreign_tablename'], $row['foreign_uid']);
@@ -217,23 +201,18 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	/**
 	 * Loads an entry for a given uuid
 	 *
-	 * @param	string	identifier
-	 * @return	void
-	 * @throws	InvalidArgumentException	Throws an exception if the given tablename or uid is not valid
+	 * @param string $tablename
+	 * @param mixed $uid
+	 * @throws \InvalidArgumentException Throws an exception if the given tablename or uid is not valid
 	 */
 	protected function loadEntryByTablenameAndUid($tablename, $uid) {
-		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
-		t3lib_div::loadTCA($tablename);
+		$identityField = $this->configuration[ProviderConfiguration::IDENTITY_FIELD];
 		if (!isset($GLOBALS['TCA'][$tablename])) {
-			throw new InvalidArgumentException('The tablename "' . $tablename . '" is not defined in the TCA.', 1299082184);
+			throw new \InvalidArgumentException('The tablename "' . $tablename . '" is not defined in the TCA.', 1299082184);
 		}
-		if ($this->version < 4006000) {
-			$invalidUid = !t3lib_div::testInt($uid);
-		} else {
-			$invalidUid = !t3lib_utility_Math::canBeInterpretedAsInteger($uid);
-		}
-		if ($invalidUid) {
-			throw new InvalidArgumentException('The uid "' . $uid . '" is not an integer.', 1299082236);
+
+		if (!\TYPO3\CMS\Core\Utility\MathUtility::canBeInterpretedAsInteger($uid)) {
+			throw new \InvalidArgumentException('The uid "' . $uid . '" is not an integer.', 1299082236);
 		}
 		$row = $this->db->exec_SELECTgetSingleRow(
 			$identityField,
@@ -268,9 +247,8 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	 * @return mixed
 	 */
 	public function getIdentifierForNewResourceLocation($tablename) {
-		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
-		$uuid = Tx_Identity_Utility_Algorithms::generateUUID();
-		t3lib_div::loadTCA($tablename);
+		$identityField = $this->configuration[ProviderConfiguration::IDENTITY_FIELD];
+		$uuid = \Maroschik\Identity\Utility\Algorithms::generateUUID();
 		if (isset($GLOBALS['TCA'][$tablename])) {
 			$this->insertQueue[$uuid] = array(
 				$identityField => $uuid,
@@ -278,7 +256,7 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 			);
 			return $uuid;
 		}
-		return null;
+		return NULL;
 	}
 
 	/**
@@ -287,7 +265,6 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	 * @param string $uuid
 	 * @param string $tablename
 	 * @param int $uid
-	 * @return void
 	 */
 	protected function addToCache($uuid, $tablename, $uid) {
 		if ($uuid && $tablename && $uid) {
@@ -306,7 +283,6 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	 * @param string $uuid
 	 * @param string $tablename
 	 * @param int $uid
-	 * @return void
 	 */
 	protected function removeFromCache($uuid, $tablename, $uid) {
 		if ($uuid && $tablename && $uid) {
@@ -327,20 +303,14 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	/**
 	 * Unregisters an uuid triple
 	 *
-	 * @param	string	identifier
-	 * @param	string	The key of the entry to unset.
-	 * @return	void
-	 * @throws	InvalidArgumentException	Throws an exception if the given namespace is not valid
+	 * @param string $uuid
+	 * @param string $tablename
+	 * @param mixed $uid
 	 */
 	protected function unregisterUUID($uuid, $tablename, $uid) {
-		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+		$identityField = $this->configuration[ProviderConfiguration::IDENTITY_FIELD];
 		$this->validateIdentifier($uuid);
-		t3lib_div::loadTCA($tablename);
-		if ($this->version < 4006000) {
-			$validUid = t3lib_div::testInt($uid);
-		} else {
-			$validUid = t3lib_utility_Math::canBeInterpretedAsInteger($uid);
-		}
+		$validUid = \TYPO3\CMS\Core\Utility\MathUtility::canBeInterpretedAsInteger($uid);
 		if ($validUid) {
 			if (isset($this->insertQueue[$uuid])) {
 				unset($this->insertQueue[$uuid]);
@@ -367,12 +337,12 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	 * Walks through all tables and inserts an uuid to a record that has any
 	 */
 	protected function insertMissingUUIDs() {
-		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+		$identityField = $this->configuration[ProviderConfiguration::IDENTITY_FIELD];
 		foreach ($GLOBALS['TCA'] as $tablename => $configuration) {
 			$rows = $this->db->exec_SELECTgetRows('uid', $tablename, $identityField . " LIKE ''");
 			if (count($rows)) {
 				foreach ($rows as &$row) {
-					$uuid = Tx_Identity_Utility_Algorithms::generateUUID();
+					$uuid = \Maroschik\Identity\Utility\Algorithms::generateUUID();
 					$this->db->exec_UPDATEquery($tablename, 'uid = ' . $row['uid'], array($identityField => $uuid));
 					$this->insertQueue[$uuid] = array(
 						$identityField => $uuid,
@@ -389,7 +359,7 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	 * Walks through all tables and registers uuids of records with uuid not stored in the registry
 	 */
 	protected function registerUnregisteredUUIDs() {
-		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+		$identityField = $this->configuration[ProviderConfiguration::IDENTITY_FIELD];
 		foreach ($GLOBALS['TCA'] as $tablename => $configuration) {
 			$rows = $this->db->exec_SELECTgetRows(
 				$tablename . '.' . $identityField . ', ' . $tablename . '.uid',
@@ -411,12 +381,12 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	 * Walks through all tables and unregisters all uuid mappings that have no target
 	 */
 	protected function removeNeedlessUUIDs() {
-		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+		$identityField = $this->configuration[ProviderConfiguration::IDENTITY_FIELD];
 		$tablenames = $this->db->exec_SELECTgetRows(
 			$this->identityTable . '.foreign_tablename',
 			$this->identityTable,
 			'',
-			$this->identityTable . '.foreign_tablename',
+				$this->identityTable . '.foreign_tablename',
 			'',
 			'',
 			'foreign_tablename'
@@ -426,18 +396,18 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 				if ($this->isApplicable($tablename)) {
 					$rows = $this->db->exec_SELECTgetRows(
 						$this->identityTable . '.' . $identityField . ', ' . $this->identityTable . '.foreign_uid',
-						$tablename . ' RIGHT JOIN ' . $this->identityTable . ' ON ' .
-						$this->identityTable . '.' . $identityField .
-						' = ' .
-						$tablename . '.' . $identityField . ' AND ' . $this->identityTable . '.foreign_uid = ' . $tablename . '.uid',
-						'foreign_tablename LIKE \'' . $tablename . '\' AND ' . $tablename . '.uid IS NULL'
+							$tablename . ' RIGHT JOIN ' . $this->identityTable . ' ON ' .
+							$this->identityTable . '.' . $identityField .
+							' = ' .
+							$tablename . '.' . $identityField . ' AND ' . $this->identityTable . '.foreign_uid = ' . $tablename . '.uid',
+							'foreign_tablename LIKE \'' . $tablename . '\' AND ' . $tablename . '.uid IS NULL'
 					);
 				} else {
 					// Not applicable means, delete all in registry regarding this tablename
 					$rows = $this->db->exec_SELECTgetRows(
 						$this->identityTable . '.' . $identityField . ', ' . $this->identityTable . '.foreign_uid',
 						$this->identityTable,
-						'foreign_tablename LIKE \'' . $tablename . '\''
+							'foreign_tablename LIKE \'' . $tablename . '\''
 					);
 				}
 				if (is_array($rows)) {
@@ -453,7 +423,7 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	 * Check the insert queue for incomplete record locations (lastInsertId for example)
 	 */
 	protected function completeInsertQueue() {
-		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+		$identityField = $this->configuration[ProviderConfiguration::IDENTITY_FIELD];
 		foreach ($this->insertQueue as $uuid => $recordLocation) {
 			$newRecordLocation = array();
 			if (isset($recordLocation[$identityField])) {
@@ -482,7 +452,7 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 	 * Persist the registry to the database
 	 */
 	public function commit() {
-		$identityField = $this->configuration[Tx_Identity_Configuration_IdentityProviderInterface::IDENTITY_FIELD];
+		$identityField = $this->configuration[ProviderConfiguration::IDENTITY_FIELD];
 		$this->completeInsertQueue();
 		if (count($this->insertQueue)) {
 			$this->db->exec_INSERTmultipleRows(
@@ -497,9 +467,9 @@ class Tx_Identity_Provider_AbstractUuid implements Tx_Identity_ProviderInterface
 				foreach ($this->deleteQueue as $deletableEntries) {
 					$this->db->exec_DELETEquery(
 						$this->identityTable,
-						$identityField . ' = ' . $this->db->fullQuoteStr($deletableEntries[$identityField], $this->identityTable)
-						. ' OR ( foreign_tablename = ' . $this->db->fullQuoteStr($deletableEntries['tablename'], $this->identityTable) . ' AND '
-						. ' foreign_uid = ' . $this->db->fullQuoteStr($deletableEntries['uid'], $this->identityTable) . ')'
+							$identityField . ' = ' . $this->db->fullQuoteStr($deletableEntries[$identityField], $this->identityTable)
+							. ' OR ( foreign_tablename = ' . $this->db->fullQuoteStr($deletableEntries['tablename'], $this->identityTable) . ' AND '
+							. ' foreign_uid = ' . $this->db->fullQuoteStr($deletableEntries['uid'], $this->identityTable) . ')'
 					);
 				}
 				$this->deleteQueue = array();

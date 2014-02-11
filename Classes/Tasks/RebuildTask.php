@@ -1,8 +1,10 @@
 <?php
+namespace Maroschik\Identity\Tasks;
+
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2010 Christian Kuhn <lolli@schwarzbu.ch>
+ *  (c) 2011-2013 Thomas Maroschik <tmaroschik@dfau.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -26,11 +28,8 @@
  * Rebuilds the identity map
  *
  * @author Thomas Maroschik <tmaroschik@dfau.de>
- *
- * @package TYPO3
- * @subpackage identity
  */
-class Tx_Identity_Tasks_RebuildTask extends tx_scheduler_Task {
+class RebuildTask extends \TYPO3\CMS\Scheduler\Task\AbstractTask {
 
 	/**
 	 * Public method, usually called by scheduler.
@@ -38,8 +37,8 @@ class Tx_Identity_Tasks_RebuildTask extends tx_scheduler_Task {
 	 * @return boolean TRUE on success
 	 */
 	public function execute() {
-		/** @var $identityMap Tx_Identity_Map */
-		$identityMap = t3lib_div::makeInstance('Tx_Identity_Map');
+		/** @var $identityMap \Maroschik\Identity\IdentityMap */
+		$identityMap = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('Maroschik\Identity\IdentityMap');
 		$identityMap->rebuild();
 		$identityMap->commit();
 		return (TRUE);

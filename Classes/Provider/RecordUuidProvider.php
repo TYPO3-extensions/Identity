@@ -1,8 +1,11 @@
 <?php
+namespace Maroschik\Identity\Provider;
+
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2011 Thomas Maroschik <tmaroschik@dfau.de>
+ *  (c) 2011-2013 Thomas Maroschik <tmaroschik@dfau.de>
+ *
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -26,19 +29,10 @@
  ***************************************************************/
 
 /**
- * Hooks for TYPO3 TCEMain.
+ * This class is the concrete implementation of the abstract uuid class for all non static records
  *
  * @author Thomas Maroschik <tmaroschik@dfau.de>
- *
- * @package TYPO3
- * @subpackage identity
  */
-class tx_identity_tcemain_hook {
-
-	public function processDatamap_afterAllOperations($parent) {
-		/** @var $identityMap Tx_Identity_Map */
-		$identityMap = t3lib_div::makeInstance('Tx_Identity_Map');
-		$identityMap->commit();
-	}
+class RecordUuidProvider extends AbstractUuidProvider {
 
 }
