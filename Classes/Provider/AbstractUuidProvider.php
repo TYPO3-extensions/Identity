@@ -217,7 +217,7 @@ class AbstractUuidProvider implements \Maroschik\Identity\Provider\ProviderInter
 		$row = $this->db->exec_SELECTgetSingleRow(
 			$identityField,
 			$this->identityTable,
-				'foreign_tablename = ' . $this->db->fullQuoteStr($tablename, $this->identityTable) . 'AND' .
+				'foreign_tablename = ' . $this->db->fullQuoteStr($tablename, $this->identityTable) . ' AND ' .
 				'foreign_uid = ' . $this->db->fullQuoteStr($uid, $this->identityTable)
 		);
 		if (!$row) {
